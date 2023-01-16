@@ -15,10 +15,7 @@ import EditProfile from '../screen/MainScreen/Profile/EditProfile/EditProfile';
 import Vehicle from '../screen/MainScreen/Profile/Vehicle/Vehicle';
 import GoTruckPay from '../screen/MainScreen/Profile/GoTruckPay/GoTruckPay';
 import Review from '../screen/MainScreen/Profile/Review/Review';
-import Support from '../screen/MainScreen/Profile/Support/Support';
-import Feedback from '../screen/MainScreen/Profile/Support/Feedback/Feedback';
-import Help from '../screen/MainScreen/Profile/Support/Help/Help';
-import FormSupportSent from '../screen/MainScreen/Profile/Support/FormSupportSent/FormSupportSent';
+import Help from '../screen/MainScreen/Profile/Help/Help';
 
 // Không cần đăng nhập
 const publicRoutes = [
@@ -55,31 +52,10 @@ const publicRoutes = [
   { name: 'GoTruckPay', component: GoTruckPay, header: false },
   { name: 'Review', component: Review, header: false },
   {
-    name: 'Support',
-    component: Support,
-    header: false,
-    animation: 'slide_from_right',
-  },
-  // Screen options in Support
-  {
-    name: 'Feedback',
-    component: Feedback,
-    header: true,
-    title: 'Góp ý & Khiếu nại',
-    animation: 'slide_from_right',
-  },
-  {
     name: 'Help',
     component: Help,
     header: true,
     title: 'Trợ giúp',
-    animation: 'slide_from_right',
-  },
-  {
-    name: 'FormSupportSent',
-    component: FormSupportSent,
-    header: true,
-    title: 'Đơn đã gửi',
     animation: 'slide_from_right',
   },
 ];

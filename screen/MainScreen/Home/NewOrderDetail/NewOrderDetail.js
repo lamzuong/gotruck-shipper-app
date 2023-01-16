@@ -6,16 +6,23 @@ import ButtonAdd from '../../../../components/ButtonAdd/ButtonAdd';
 import { View, Text, ScrollView } from 'react-native';
 import React, { useState } from 'react';
 import { Feather, Foundation, Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
-export default function NewOrderDetail({ item }) {
+export default function NewOrderDetail({ item, show, received }) {
   const navigation = useNavigation();
   return (
     <View style={styles.container}>
-      <View style={{ alignItems: 'center', backgroundColor: stylesGlobal.mainGreen }}>
-        <Feather name="menu" size={30} color="white" />
-        <Text style={{ fontSize: 16, color: 'white' }}>Chi tiết đơn hàng</Text>
-      </View>
+      {show == 'mini' ? (
+        <View style={{ alignItems: 'center' }}>
+          <Feather name="menu" size={30} color="black" />
+        </View>
+      ) : (
+        <View style={{ alignItems: 'center', backgroundColor: stylesGlobal.mainGreen }}>
+          <Feather name="menu" size={30} color="white" />
+          <Text style={{ fontSize: 16, color: 'white' }}>Chi tiết đơn hàng</Text>
+        </View>
+      )}
+
       <ScrollView style={{ paddingHorizontal: 20 }}>
         <View style={[styles.inline, { marginTop: 10 }]}>
           <Text style={styles.label}>Mã đơn</Text>
@@ -72,23 +79,37 @@ export default function NewOrderDetail({ item }) {
           </View>
         </View>
       </ScrollView>
-      <View style={[stylesGlobal.inlineBetween, { paddingHorizontal: 20 }]}>
-        <MyButton
-          type={'medium'}
-          text="Hủy chuyến"
-          btnColor={'red'}
-          txtColor="white"
-          action={() => {}}
-        />
-        <MyButton
-          type={'medium'}
-          text="Bắt đầu giao"
-          btnColor={stylesGlobal.mainGreen}
-          txtColor="white"
-          action={() => {
-            navigation.navigate('ReceiveGoods');
-          }}
-        />
+      <View style={{ paddingHorizontal: 20 }}>
+        {received ? (
+          <View style={{ alignItems: 'center' }}>
+            <MyButton
+              type={'large'}
+              text="Đã giao hàng thành công"
+              btnColor={stylesGlobal.mainGreen}
+              txtColor="white"
+              action={() => {}}
+            />
+          </View>
+        ) : (
+          <View style={stylesGlobal.inlineBetween}>
+            <MyButton
+              type={'medium'}
+              text="Hủy chuyến"
+              btnColor={'red'}
+              txtColor="white"
+              action={() => {}}
+            />
+            <MyButton
+              type={'medium'}
+              text="Bắt đầu giao"
+              btnColor={stylesGlobal.mainGreen}
+              txtColor="white"
+              action={() => {
+                navigation.navigate('ReceiveGoods');
+              }}
+            />
+          </View>
+        )}
       </View>
     </View>
   );

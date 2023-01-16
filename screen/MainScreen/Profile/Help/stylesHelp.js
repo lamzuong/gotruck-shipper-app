@@ -1,5 +1,5 @@
 import { Dimensions, StyleSheet } from 'react-native';
-import stylesGlobal from '../../../../../global/stylesGlobal';
+import stylesGlobal from '../../../../global/stylesGlobal';
 
 const widthScreen = Dimensions.get('window').width;
 const heightScreen = Dimensions.get('window').height;
@@ -10,13 +10,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     paddingBottom: 20,
   },
-  viewInput: {
-    marginVertical: 10,
+  header: {
+    borderBottomWidth: 1,
+    padding: 5,
   },
-  label: {
-    marginBottom: 10,
-    fontSize: 16,
-    color: 'grey',
+  txtHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  body: {},
+  txtBody: {
+    padding: 5,
+    fontSize: 17,
   },
 });
 

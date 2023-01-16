@@ -51,9 +51,7 @@ export default function ReceiveGoods({ navigation }) {
             txtColor={'white'}
             action={() => {
               navigation.navigate('Home', {
-                item: {
-                  mini: true,
-                },
+                received: true,
               });
             }}
           />
