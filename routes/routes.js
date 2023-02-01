@@ -12,10 +12,18 @@ import ChatRoom from '../screen/MainScreen/Message/Chat/ChatRoom/ChatRoom';
 import InfoDetail from '../screen/MainScreen/Message/Info/InfoDetail/InfoDetail';
 
 import EditProfile from '../screen/MainScreen/Profile/EditProfile/EditProfile';
-import Vehicle from '../screen/MainScreen/Profile/Vehicle/Vehicle';
-import GoTruckPay from '../screen/MainScreen/Profile/GoTruckPay/GoTruckPay';
 import Review from '../screen/MainScreen/Profile/Review/Review';
-import Help from '../screen/MainScreen/Profile/Help/Help';
+import Support from '../screen/MainScreen/Profile/Support/Support';
+import Help from '../screen/MainScreen/Profile/Support/Help/Help';
+
+import GoTruckPay from '../screen/MainScreen/Profile/GoTruckPay/GoTruckPay';
+import HistoryMoney from '../screen/MainScreen/Profile/GoTruckPay/HistoryMoney/HistoryMoney';
+import Withdraw from '../screen/MainScreen/Profile/GoTruckPay/Withdraw/Withdraw';
+import WithdrawSuccess from '../screen/MainScreen/Profile/GoTruckPay/Withdraw/WithdrawSuccess/WithdrawSuccess';
+
+import Vehicle from '../screen/MainScreen/Profile/Vehicle/Vehicle';
+import FormVehicle from '../screen/MainScreen/Profile/Vehicle/FormVehicle/FormVehicle';
+import SendFormSuccess from '../screen/MainScreen/Profile/Vehicle/SendFormSuccess/SendFormSuccess';
 
 // Không cần đăng nhập
 const publicRoutes = [
@@ -48,14 +56,76 @@ const publicRoutes = [
 
   // Screen options in Profile
   { name: 'EditProfile', component: EditProfile, header: false },
-  { name: 'Vehicle', component: Vehicle, header: false },
-  { name: 'GoTruckPay', component: GoTruckPay, header: false },
-  { name: 'Review', component: Review, header: false },
+  {
+    name: 'Vehicle',
+    component: Vehicle,
+    header: true,
+    title: 'Phương tiện',
+    animation: 'slide_from_right',
+  },
+  {
+    name: 'GoTruckPay',
+    component: GoTruckPay,
+    header: true,
+    title: 'Ví GoTruck',
+    animation: 'slide_from_right',
+  },
+  {
+    name: 'Review',
+    component: Review,
+    header: true,
+    title: 'Đánh giá của tôi',
+    animation: 'slide_from_right',
+  },
+  {
+    name: 'Support',
+    component: Support,
+    header: true,
+    title: 'Hỗ trợ',
+    animation: 'slide_from_right',
+  },
   {
     name: 'Help',
     component: Help,
     header: true,
     title: 'Trợ giúp',
+    animation: 'slide_from_right',
+  },
+
+  // Screen options in GoTruckPay
+  {
+    name: 'HistoryMoney',
+    component: HistoryMoney,
+    header: true,
+    title: 'Lịch sử giao dịch',
+    animation: 'slide_from_right',
+  },
+  {
+    name: 'Withdraw',
+    component: Withdraw,
+    header: true,
+    title: 'Rút tiền',
+    animation: 'slide_from_right',
+  },
+  {
+    name: 'WithdrawSuccess',
+    component: WithdrawSuccess,
+    header: false,
+    animation: 'slide_from_right',
+  },
+
+  // Screen options in Vehicle
+  {
+    name: 'FormVehicle',
+    component: FormVehicle,
+    header: true,
+    title: 'Thông tin phương tiện',
+    animation: 'slide_from_right',
+  },
+  {
+    name: 'SendFormSuccess',
+    component: SendFormSuccess,
+    header: false,
     animation: 'slide_from_right',
   },
 ];

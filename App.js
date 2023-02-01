@@ -3,7 +3,7 @@ import stylesGlobal from './global/stylesGlobal';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { StyleSheet, Text, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
@@ -38,11 +38,14 @@ export default function App() {
   );
 }
 
+const widthScreen = Dimensions.get('window').width;
+const heightScreen = Dimensions.get('window').height;
 const styles = StyleSheet.create({
-  viewHeader: { alignItems: 'center', width: '80%' },
+  viewHeader: {},
   txtHeader: {
     color: 'white',
     fontWeight: 'bold',
     fontSize: 18,
+    textAlign: 'center',
   },
 });

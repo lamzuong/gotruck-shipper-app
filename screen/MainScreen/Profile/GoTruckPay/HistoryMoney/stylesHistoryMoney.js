@@ -1,28 +1,27 @@
 import { Dimensions, StyleSheet } from 'react-native';
-import stylesGlobal from '../../../../global/stylesGlobal';
+import stylesGlobal from '../../../../../global/stylesGlobal';
 
 const widthScreen = Dimensions.get('window').width;
 const heightScreen = Dimensions.get('window').height;
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
+    padding: 10,
   },
-  title: {
-    marginTop: 20,
-    fontSize: 18,
+  item: {
+    padding: 5,
+
+    borderBottomWidth: 1,
+    borderColor: 'grey',
   },
-  money: {
-    marginTop: 10,
-    fontSize: 30,
+  add: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: stylesGlobal.mainGreen,
+  },
+  sub: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: 'red',
-  },
-  viewOptions: {
-    flexDirection: 'row',
-  },
-  option: {
-    marginHorizontal: 50,
-    marginTop: 20,
   },
 });
 

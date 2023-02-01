@@ -8,20 +8,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'white',
     paddingHorizontal: 25,
-    paddingBottom: 20,
   },
-  header: {
+  flatList: {
+    marginTop: 20,
+  },
+  item: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
     borderBottomWidth: 1,
-    padding: 5,
+    borderColor: stylesGlobal.lightDarkGrey,
   },
-  txtHeader: {
+  txtItem: {
+    marginLeft: 15,
     fontSize: 18,
-    fontWeight: 'bold',
-  },
-  body: {},
-  txtBody: {
-    padding: 5,
-    fontSize: 17,
   },
 });
 

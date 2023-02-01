@@ -1,4 +1,4 @@
-import { FontAwesome, Entypo, Ionicons } from '@expo/vector-icons';
+import { FontAwesome, Entypo, Ionicons, MaterialIcons } from '@expo/vector-icons';
 
 const options = [
   {
@@ -17,9 +17,9 @@ const options = [
     icon: <Entypo name="wallet" size={30} color="black" />,
   },
   {
-    title: 'Trợ giúp',
-    navigateTo: 'Help',
-    icon: <Ionicons name="help-circle" size={30} color="black" />,
+    title: 'Hỗ trợ',
+    navigateTo: 'Support',
+    icon: <MaterialIcons name="support-agent" size={30} color="black" />,
   },
   {
     title: 'Đăng xuất',

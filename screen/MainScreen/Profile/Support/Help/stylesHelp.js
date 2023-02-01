@@ -1,5 +1,5 @@
 import { Dimensions, StyleSheet } from 'react-native';
-import stylesGlobal from '../../../../global/stylesGlobal';
+import stylesGlobal from '../../../../../global/stylesGlobal';
 
 const widthScreen = Dimensions.get('window').width;
 const heightScreen = Dimensions.get('window').height;
@@ -7,18 +7,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
-    padding: 15,
+    paddingHorizontal: 25,
+    paddingBottom: 20,
   },
-  wrapper: {
-    borderWidth: 1,
-    borderRadius: 10,
-    borderColor: 'grey',
-    padding: 10,
-    marginBottom: 5,
-  },
-  headComment: {
+  header: {
     borderBottomWidth: 1,
-    borderColor: stylesGlobal.darkGrey,
+    padding: 5,
+  },
+  txtHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  body: {},
+  txtBody: {
+    padding: 5,
+    fontSize: 17,
   },
 });
 

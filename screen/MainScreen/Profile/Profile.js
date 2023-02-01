@@ -1,26 +1,19 @@
-import styles from "./stylesProfile";
-import options from "./optionsProfile";
+import styles from './stylesProfile';
+import options from './optionsProfile';
 
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  FlatList,
-  Alert,
-} from "react-native";
-import React from "react";
-import { MaterialIcons } from "@expo/vector-icons";
+import { View, Text, Image, TouchableOpacity, FlatList, Alert } from 'react-native';
+import React from 'react';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function Profile({ navigation }) {
   const confirmRequest = (screen) => {
-    Alert.alert("Xác nhận", "Bạn có muốn đăng xuất khỏi ứng dụng ?", [
+    Alert.alert('Xác nhận', 'Bạn có muốn đăng xuất khỏi ứng dụng ?', [
       {
-        text: "Hủy",
+        text: 'Hủy',
         onPress: () => null,
-        style: "cancel",
+        style: 'cancel',
       },
-      { text: "OK", onPress: () => navigation.navigate(screen) },
+      { text: 'OK', onPress: () => navigation.navigate(screen) },
     ]);
   };
   return (
@@ -28,27 +21,20 @@ export default function Profile({ navigation }) {
       <View style={styles.viewAccount}>
         <Image
           source={{
-            uri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRkpJs8hpgL9n4IJmmmyrhmNXPcv1-5TDIGEjVCy7DK7DpHCxvg2vipiuf5Kd290BcXDOM&usqp=CAU",
+            uri: 'https://res.cloudinary.com/dicpaduof/image/upload/v1675151266/GoTruck/user-no-avatar_qvvoes.png',
           }}
           style={styles.viewAccount.avatar}
         />
         <View style={{ marginLeft: 20 }}>
-          <Text style={styles.viewAccount.name}>Nico Robin</Text>
+          <Text style={styles.viewAccount.name}>Lê Văn Tài</Text>
           <TouchableOpacity
-            style={{ flexDirection: "row" }}
+            style={{ flexDirection: 'row' }}
             onPress={() => {
-              navigation.navigate("EditProfile");
+              navigation.navigate('EditProfile');
             }}
           >
-            <Text style={styles.viewAccount.editAccount}>
-              Chỉnh sửa tài khoản
-            </Text>
-            <MaterialIcons
-              name="navigate-next"
-              size={24}
-              color="grey"
-              style={{ marginTop: 10 }}
-            />
+            <Text style={styles.viewAccount.editAccount}>Chỉnh sửa tài khoản</Text>
+            <MaterialIcons name="navigate-next" size={24} color="grey" style={{ marginTop: 10 }} />
           </TouchableOpacity>
         </View>
       </View>
@@ -58,16 +44,18 @@ export default function Profile({ navigation }) {
           return (
             <TouchableOpacity
               style={styles.item}
-              onPress={() => {
-                item.title === "Đăng xuất"
-                  ? confirmRequest(item.navigateTo)
-                  : navigation.navigate(item.navigateTo);
-              }}
+              onPress={
+                item.special
+                  ? () => {}
+                  : () => {
+                      item.title === 'Đăng xuất'
+                        ? confirmRequest(item.navigateTo)
+                        : navigation.navigate(item.navigateTo);
+                    }
+              }
             >
               <View>{item.icon}</View>
-              <Text style={[styles.txtItem, { color: item.color }]}>
-                {item.title}
-              </Text>
+              <Text style={[styles.txtItem, { color: item.color }]}>{item.title}</Text>
             </TouchableOpacity>
           );
         }}

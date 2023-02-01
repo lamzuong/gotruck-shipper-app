@@ -2,7 +2,15 @@ import styles from './stylesHome';
 import stylesGlobal from '../../../global/stylesGlobal';
 import NewOrderDetail from './NewOrderDetail/NewOrderDetail';
 
-import { View, Text, StatusBar, TouchableOpacity, Pressable, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StatusBar,
+  TouchableOpacity,
+  Pressable,
+  ScrollView,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { AntDesign, Entypo, FontAwesome5, FontAwesome, Ionicons } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -66,6 +74,7 @@ export default function Home({ navigation, route }) {
       comment: null,
     },
   };
+
   return (
     <View style={styles.container}>
       <StatusBar />
@@ -172,22 +181,30 @@ export default function Home({ navigation, route }) {
       ) : (
         <SwipeUpDown
           itemMini={(show) => (
-            <View>
-              <NewOrderDetail item={orderItem} show={'mini'} received={received} />
-            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <TouchableWithoutFeedback>
+                <NewOrderDetail item={orderItem} show={'mini'} received={received} />
+              </TouchableWithoutFeedback>
+            </ScrollView>
           )}
           itemFull={(hide) => (
-            <View>
-              <NewOrderDetail item={orderItem} show={'full'} received={received} />
-            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <TouchableWithoutFeedback>
+                <View>
+                  <NewOrderDetail item={orderItem} show={'full'} received={received} />
+                </View>
+              </TouchableWithoutFeedback>
+            </ScrollView>
           )}
+          disablePressToShow={false}
           ref={swipeUpDownRef}
-          animation="spring"
-          disableSwipeIcon
-          iconColor="yellow"
+          animation="easeInEaseOut"
+          disableSwipeIcon={false}
+          iconColor="black"
           iconSize={30}
           style={styles.swiper}
           swipeHeight={250}
+          extraMarginTop={10}
         />
       )}
     </View>

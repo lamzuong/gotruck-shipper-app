@@ -3,27 +3,16 @@ import stylesGlobal from '../../../../global/stylesGlobal';
 import MyButton from '../../../../components/MyButton/MyButton';
 import ButtonAdd from '../../../../components/ButtonAdd/ButtonAdd';
 
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, TouchableWithoutFeedback } from 'react-native';
 import React, { useState } from 'react';
-import { Feather, Foundation, Ionicons } from '@expo/vector-icons';
+import { Feather, Foundation, Ionicons, SimpleLineIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 export default function NewOrderDetail({ item, show, received }) {
   const navigation = useNavigation();
   return (
     <View style={styles.container}>
-      {show == 'mini' ? (
-        <View style={{ alignItems: 'center' }}>
-          <Feather name="menu" size={30} color="black" />
-        </View>
-      ) : (
-        <View style={{ alignItems: 'center', backgroundColor: stylesGlobal.mainGreen }}>
-          <Feather name="menu" size={30} color="white" />
-          <Text style={{ fontSize: 16, color: 'white' }}>Chi tiết đơn hàng</Text>
-        </View>
-      )}
-
-      <ScrollView style={{ paddingHorizontal: 20 }}>
+      <View style={{ paddingHorizontal: 20 }}>
         <View style={[styles.inline, { marginTop: 10 }]}>
           <Text style={styles.label}>Mã đơn</Text>
           <Text style={styles.content}>{item.id}</Text>
@@ -78,8 +67,8 @@ export default function NewOrderDetail({ item, show, received }) {
             </Text>
           </View>
         </View>
-      </ScrollView>
-      <View style={{ paddingHorizontal: 20 }}>
+      </View>
+      <View style={{ paddingHorizontal: 20, marginBottom: 100 }}>
         {received ? (
           <View style={{ alignItems: 'center' }}>
             <MyButton
