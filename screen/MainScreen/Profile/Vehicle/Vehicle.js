@@ -1,5 +1,4 @@
 import styles from './stylesVehicle';
-import truck from './data';
 import ButtonAdd from '../../../../components/ButtonAdd/ButtonAdd';
 
 import {
@@ -12,9 +11,10 @@ import {
   TouchableWithoutFeedback,
   Alert,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { AntDesign, MaterialIcons, Feather } from '@expo/vector-icons';
-
+import {axiosClient} from "../../../../api/axiosClient"
+import { AuthContext } from '../../../../context/AuthContext';
 export default function Vehicle({ navigation }) {
   //----------Back Button----------
   useEffect(() => {
@@ -26,8 +26,13 @@ export default function Vehicle({ navigation }) {
     return () => backHandler.remove();
   }, []);
   //------------------------------
+
+  const {user} = useContext(AuthContext);
+
   const [modalVisible, setModalVisible] = useState(false);
   const [item, setItem] = useState({});
+  const [truck, setTruck] = useState(user.infoAllTruck || []);
+
 
   const editVehicle = () => {
     setModalVisible(!modalVisible);
@@ -44,6 +49,7 @@ export default function Vehicle({ navigation }) {
       { text: 'OK', onPress: () => console.log(item.nameTruck) },
     ]);
   };
+
   return (
     <ScrollView style={styles.container}>
       <Modal
@@ -73,7 +79,7 @@ export default function Vehicle({ navigation }) {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
-      {truck.map((e, i) => (
+      {truck?.map((e, i) => (
         <TouchableOpacity
           style={styles.itemTruck}
           key={i}
@@ -82,8 +88,8 @@ export default function Vehicle({ navigation }) {
             setItem(e);
           }}
         >
-          <Text style={styles.nameTruck}>{e.nameTruck}</Text>
-          <Text>{e.numberTruck}</Text>
+          <Text style={styles.nameTruck}>{e.name}</Text>
+          <Text>{e.license_plate}</Text>
           {e.default ? (
             <Text style={styles.defaultTruck}>
               <AntDesign name="checkcircleo" size={12} color="#04AF46" />

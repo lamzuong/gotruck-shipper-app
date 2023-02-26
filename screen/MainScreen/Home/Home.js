@@ -10,74 +10,250 @@ import {
   Pressable,
   ScrollView,
   TouchableWithoutFeedback,
+  Dimensions,
+  Alert,
 } from 'react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { AntDesign, Entypo, FontAwesome5, FontAwesome, Ionicons } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
 import ReadMore from 'react-native-read-more-text';
 import { Collapse, CollapseHeader, CollapseBody } from 'accordion-collapse-react-native';
 import SwipeUpDown from 'react-native-swipe-up-down';
+import MapView, { LatLng, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapViewDirections from 'react-native-maps-directions';
+import { GOOGLE_API_KEY } from '../../../global/keyGG';
+import { AuthContext } from '../../../context/AuthContext';
+
+import { socketClient } from '../../../global/socket';
+import axiosClient from '../../../api/axiosClient';
+import { getLocationCurrentOfUser, getDistanceTwoLocation } from '../../../global/ultilLocation';
 
 export default function Home({ navigation, route }) {
-  const [status, setStatus] = useState(true);
+  const { dispath, user, locationNow } = useContext(AuthContext);
+
+  const [status, setStatus] = useState(false);
   const [expand, setExpand] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
   const [addressExpected, setAddressExpected] = useState(
     '336/15/14 Lê Văn Quới, P. Bình Trị Đông, Q. Bình Tân',
   );
-  const [haveOrder, setHaveOrder] = useState(true);
+  const [haveOrder, setHaveOrder] = useState(false);
   const [received, setReceived] = useState(false);
-
+  const [listOrderNotify, setListOrderNotify] = useState([]);
+  const [heightSwip, setHeightSwip] = useState(250);
+  const [orderItem, setOrderItem] = useState();
+  const [showDetailOrigin, setshowDetailOrigin] = useState(true);
+  const [locationShipper, setLocationShipper] = useState(locationNow);
+  const stopZoomRef = useRef(false);
+  const mapRef = useRef();
   const swipeUpDownRef = useRef();
+
+  const { width, height } = Dimensions.get('window');
+  const ASPECT_RATIO = width / height;
+  const LATITUDE_DELTA = 0.02;
+  const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
+
+  // let INITIAL_POSITION = {
+  //   latitude: locationNow?.latitude || 10.820685,
+  //   longitude: locationNow?.longitude || 106.687631,
+  //   latitudeDelta: LATITUDE_DELTA,
+  //   longitudeDelta: LONGITUDE_DELTA,
+  // };
+
+  //Test
+  let INITIAL_POSITION = {
+    latitude: 10.820685,
+    longitude: 106.687631,
+    latitudeDelta: LATITUDE_DELTA,
+    longitudeDelta: LONGITUDE_DELTA,
+  };
+
+  const edgePaddingValue = 70;
+
+  const edgePadding = {
+    top: edgePaddingValue,
+    right: edgePaddingValue,
+    bottom: edgePaddingValue,
+    left: edgePaddingValue,
+  };
+
+  const zoomMap = () => {
+    mapRef.current?.fitToCoordinates([locationShipper, orderItem.from_address], {
+      edgePadding,
+    });
+  };
+
+  const getTruckDefault = () => {
+    const truckDefault = user.infoAllTruck.find((tr) => tr.default === true);
+    return truckDefault.type_truck.name + '';
+  };
+
+  const getTruckDefault2 = () => {
+    const truckDefault = user.infoAllTruck.find((tr) => tr.default === true);
+    return truckDefault._id;
+  };
+
+  useEffect(() => {
+    if (status) {
+      socketClient.off(getTruckDefault());
+      socketClient.on(getTruckDefault(), async (data) => {
+        const distanceTwoLocation = await getDistanceTwoLocation(
+          locationShipper,
+          data.from_address,
+        );
+        const distanceReceiveOrder = await axiosClient.get('gotruck/ordershipper/distancereceive');
+        if (
+          distanceTwoLocation >= 0 &&
+          distanceTwoLocation <= distanceReceiveOrder.distance_receive_order
+        ) {
+          console.log('Đã nhận đơn mới');
+          setListOrderNotify((prev) => {
+            return [...prev, data];
+          });
+        } else if (distanceTwoLocation < 0) {
+          console.log('Không có đường tới nơi nhận hàng');
+        } else {
+          console.log('Đơn hàng quá xa');
+        }
+      });
+    } else {
+      socketClient.off(getTruckDefault());
+      setListOrderNotify([]);
+    }
+  }, [status]);
   useEffect(() => {
     if (route.params != null) {
-      if (route.params.received) setReceived(true);
-      swipeUpDownRef.current.showMini();
+      if (route.params.itemCancel) {
+        setListOrderNotify((prev) => {
+          const dataList = listOrderNotify;
+          var index = listOrderNotify.findIndex(
+            (e) => e.id_order === route.params.itemCancel.id_order,
+          );
+          if (index > -1) {
+            dataList.splice(index, 1);
+          }
+          return [...dataList];
+        });
+      } else if (route.params.checkHaveOrder) {
+        (async function () {
+          const updateNewOrder = route.params.itemOrder;
+          const truckId = getTruckDefault2();
+          updateNewOrder.shipper = {
+            id_shipper: user._id,
+            truck: truckId,
+          };
+          updateNewOrder.status = 'Đã nhận';
+          const res = await axiosClient.put('gotruck/ordershipper/', updateNewOrder);
+          console.log(res);
+          if (!res.shipper) {
+            socketClient.off(getTruckDefault());
+            setOrderItem(route.params.itemOrder);
+            setHaveOrder(true);
+            socketClient.emit('shipper_receive', res);
+          } else {
+            Alert.alert('Thông báo', 'Đơn hàng đã được nhận bởi shipper khác');
+          }
+        }.call(this));
+      } else {
+        if (route.params.received) setReceived(true);
+        swipeUpDownRef.current.showMini();
+      }
     }
-  }, [route.params]);
+  }, [route]);
 
-  const order = [
-    {
-      id: 1,
-      title: 'Đơn giao tới TP.HCM',
-      content:
-        'Đơn hàng giao từ Khóm 6C, Thị Trấn Sông Đốc, Huyện Trần Văn Thời, Tỉnh Cà Mau tới Số 8 Lê Lợi, Gò Vấp, TP.HCM',
-    },
-    {
-      id: 2,
-      title: 'Đơn giao trong nội thành',
-      content:
-        'Đơn hàng giao từ Khóm 6C, Thị Trấn Sông Đốc, Huyện Trần Văn Thời, Tỉnh Cà Mau tới  Số 90E, đường Lê Lợi, Khóm 2, Phường 2, Thành phố Cà Mau, Tỉnh Cà Mau.',
-    },
-  ];
+  // useEffect(() => {
+  //   console.log('Strat');
+  //   const timeId = setInterval(async () => {
+  //     console.log('10s');
+  //     const location = await getLocationCurrentOfUser();
+  //     setLocationShipper((prev) => location);
+  //   }, 10000);
+  //   return () => {
+  //     clearInterval(timeId);
+  //   };
+  // }, []);
 
-  const orderItem = {
-    id: 'HD2023001',
-    from: '456 Lê Văn Quới, P. Bình Trị Đông, Q. Bình Tân TP.HCM',
-    to: 'Số 12 Nguyễn Văn Bảo P.4, Q.Gò Vấp, TP.HCM',
-    note: 'Trường Đại học Công Nghiệp TPHCM',
-    peopleSend: 'Nguyễn Văn Bình',
-    phoneSend: '0909152365',
-    peopleReceive: 'Nguyễn Văn An',
-    phoneReceive: '0794812125',
-    shipper: {
-      id: null,
-      name: null,
-      numberTruck: null,
-    },
-    distance: '50km',
-    expectedTime: '3-5 ngày',
-    price: 2500000,
-    status: 'Đã nhận',
-    review: {
-      star: null,
-      comment: null,
-    },
+  const handleCancelOrder = async (item) => {
+    item.status = 'Đã hủy';
+    item.reason_cancel = {
+      user_cancel: 'Shipper',
+      content: 'Đơn hàng không hợp lệ',
+    };
+    const resOrderCancel = await axiosClient.put('gotruck/orderShipper/', item);
+    if (resOrderCancel.status === 'Đã hủy') {
+      setListOrderNotify([]);
+      setHaveOrder(false);
+      setShowMessage(false);
+      socketClient.emit('shipper_cancel', resOrderCancel);
+    }
   };
 
   return (
     <View style={styles.container}>
       <StatusBar />
+      <MapView
+        ref={mapRef}
+        style={styles.map}
+        provider={PROVIDER_GOOGLE}
+        initialRegion={INITIAL_POSITION}
+        showsUserLocation={true}
+        showsMyLocationButton={true}
+        zoomEnabled={true}
+        addressForCoordinate={(e) => {
+          console.log(e);
+        }}
+      >
+        {haveOrder ? (
+          locationShipper ? (
+            <>
+              <MapViewDirections
+                origin={locationShipper}
+                destination={orderItem.from_address}
+                apikey={GOOGLE_API_KEY}
+                strokeColor="rgb(0,176,255)"
+                strokeWidth={4}
+                mode="DRIVING"
+                onReady={() => {
+                  if (stopZoomRef.current === false) {
+                    console.log('zom');
+                    zoomMap();
+                    stopZoomRef.current = true;
+                  } else {
+                    console.log('stop zom');
+                  }
+                }}
+                onError={(e) => {
+                  console.log(e);
+                  Alert.alert('Thông báo', 'Vị trí bạn chọn không được hỗ trợ vận chuyển');
+                }}
+              />
+              {/* <Marker
+              coordinate={locationNow}
+              description={locationNow.address}
+              title="Vị trí giao hàng"
+            /> */}
+              <Marker
+                coordinate={orderItem.from_address}
+                onPress={() => {
+                  setshowDetailOrigin(!showDetailOrigin);
+                }}
+              >
+                {showDetailOrigin && (
+                  <View style={styles.coordinate}>
+                    <Text style={styles.title}>Vị trí nhận hàng</Text>
+                    <Text style={styles.description}>{orderItem.from_address.address}</Text>
+                  </View>
+                )}
+                <Ionicons name="location" size={30} color="red" style={styles.marker} />
+              </Marker>
+            </>
+          ) : (
+            <></>
+          )
+        ) : (
+          <></>
+        )}
+      </MapView>
       {!haveOrder ? (
         status ? (
           <View>
@@ -133,29 +309,46 @@ export default function Home({ navigation, route }) {
               }}
             >
               <FontAwesome5 name="bell" size={24} color="white" />
-              <Text style={styles.numberMess}>10</Text>
+              <Text style={styles.numberMess}>{listOrderNotify.length}</Text>
             </TouchableOpacity>
 
             {showMessage ? (
-              <View style={styles.viewMessage}>
-                <ScrollView style={{ maxHeight: 200 }}>
-                  {order.map((e, i) => (
-                    <View key={i} style={[stylesGlobal.inline, styles.itemMess]}>
-                      <View style={styles.viewIcon}>
-                        <FontAwesome name="truck" size={24} color={stylesGlobal.darkGreen} />
-                      </View>
-                      <View>
-                        <Text style={styles.txtTitle}>{e.title}</Text>
-                        <View style={styles.txtContent}>
-                          <ReadMore numberOfLines={1} renderTruncatedFooter={() => null}>
-                            <Text numberOfLines={1}>{e.content}</Text>
-                          </ReadMore>
+              listOrderNotify.length > 0 ? (
+                <View style={styles.viewMessage}>
+                  <ScrollView style={{ maxHeight: 200 }}>
+                    {listOrderNotify.map((e, i) => (
+                      <TouchableOpacity
+                        key={i}
+                        style={[stylesGlobal.inline, styles.itemMess]}
+                        onPress={() => {
+                          navigation.navigate('OrderDetailForNotification', { item: e });
+                        }}
+                      >
+                        <View style={styles.viewIcon}>
+                          <FontAwesome name="truck" size={24} color={stylesGlobal.darkGreen} />
                         </View>
-                      </View>
+                        <View>
+                          <Text style={styles.to_ad}>Đơn giao tới {e.to_address.address}</Text>
+                          <View style={styles.txtContent}>
+                            <ReadMore numberOfLines={1} renderTruncatedFooter={() => null}>
+                              <Text numberOfLines={1}>{e.note ? e.note : 'Không có ghi chú'}</Text>
+                            </ReadMore>
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              ) : (
+                <View style={styles.viewMessage}>
+                  <View style={[stylesGlobal.inline, styles.itemMess]}>
+                    <View style={styles.viewIcon}>
+                      <FontAwesome name="truck" size={24} color={stylesGlobal.darkGreen} />
                     </View>
-                  ))}
-                </ScrollView>
-              </View>
+                    <Text style={styles.to_ad}>Không có đơn hàng</Text>
+                  </View>
+                </View>
+              )
             ) : null}
 
             {/* Online, Offline */}
@@ -183,7 +376,12 @@ export default function Home({ navigation, route }) {
           itemMini={(show) => (
             <ScrollView showsVerticalScrollIndicator={false}>
               <TouchableWithoutFeedback>
-                <NewOrderDetail item={orderItem} show={'mini'} received={received} />
+                <NewOrderDetail
+                  handleCancelOrderParent={handleCancelOrder}
+                  item={orderItem}
+                  show={'mini'}
+                  received={received}
+                />
               </TouchableWithoutFeedback>
             </ScrollView>
           )}
@@ -191,7 +389,12 @@ export default function Home({ navigation, route }) {
             <ScrollView showsVerticalScrollIndicator={false}>
               <TouchableWithoutFeedback>
                 <View>
-                  <NewOrderDetail item={orderItem} show={'full'} received={received} />
+                  <NewOrderDetail
+                    handleCancelOrderParent={handleCancelOrder}
+                    item={orderItem}
+                    show={'full'}
+                    received={received}
+                  />
                 </View>
               </TouchableWithoutFeedback>
             </ScrollView>
@@ -203,8 +406,14 @@ export default function Home({ navigation, route }) {
           iconColor="black"
           iconSize={30}
           style={styles.swiper}
-          swipeHeight={250}
-          extraMarginTop={10}
+          swipeHeight={heightSwip}
+          onShowMini={() => {
+            setHeightSwip(120);
+          }}
+          onShowFull={() => {
+            setHeightSwip(270);
+          }}
+          extraMarginTop={20}
         />
       )}
     </View>

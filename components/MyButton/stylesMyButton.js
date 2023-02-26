@@ -44,6 +44,20 @@ const styles = StyleSheet.create({
       marginHorizontal: 5,
     },
   },
+  medium2: {
+    width: '80%',
+    height: 50,
+    backgroundColor: 'red',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    flexDirection: 'row',
+    text: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginHorizontal: 5,
+    },
+  },
 });
 
 export default styles;

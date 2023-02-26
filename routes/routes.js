@@ -25,6 +25,7 @@ import Vehicle from '../screen/MainScreen/Profile/Vehicle/Vehicle';
 import FormVehicle from '../screen/MainScreen/Profile/Vehicle/FormVehicle/FormVehicle';
 import SendFormSuccess from '../screen/MainScreen/Profile/Vehicle/SendFormSuccess/SendFormSuccess';
 
+import OrderDetailForNotification from '../screen/MainScreen/Home/OrderDetailForNotification/OrderDetailForNotification';
 // Không cần đăng nhập
 const publicRoutes = [
   { name: 'Login', component: Login, header: false },
@@ -42,6 +43,13 @@ const publicRoutes = [
   { name: 'ShippedGoods', component: ShippedGoods, header: false, animation: 'slide_from_right' },
   { name: 'FinishPage', component: FinishPage, header: false },
 
+  ,
+  {
+    name: 'OrderDetailForNotification',
+    component: OrderDetailForNotification,
+    header: true,
+    title: 'Chi tiết đơn hàng',
+  },
   // Screen options in Order
   {
     name: 'OrderDetail',

@@ -13,7 +13,6 @@ export default function FormVehicle() {
   const navigation = useNavigation();
   const route = useRoute();
   const { item } = route.params;
-  console.log(item);
 
   const [nameTruck, setNameTruck] = useState('');
   const [numberTruck, setNumberTruck] = useState('');
@@ -50,7 +49,6 @@ export default function FormVehicle() {
       </View>
     );
   };
-
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.viewInput}>
@@ -59,16 +57,7 @@ export default function FormVehicle() {
           borderWidth={1}
           placeholder={'59-M1.12345'}
           value={setNumberTruck}
-          initialValue={item.numberTruck}
-        />
-      </View>
-      <View style={styles.viewInput}>
-        <Text>Hãng xe</Text>
-        <MyInput
-          borderWidth={1}
-          placeholder={'Toyota, Suzuki,...'}
-          value={setBrandTruck}
-          initialValue={item.brandTruck}
+          initialValue={item.license_plate}
         />
       </View>
       <View style={styles.viewInput}>
@@ -77,7 +66,16 @@ export default function FormVehicle() {
           borderWidth={1}
           placeholder={'Suzuki Carry Truck'}
           value={setNameTruck}
-          initialValue={item.nameTruck}
+          initialValue={item.name}
+        />
+      </View>
+      <View style={styles.viewInput}>
+        <Text>Trọng tải</Text>
+        <MyInput
+          borderWidth={1}
+          placeholder={'Toyota, Suzuki,...'}
+          value={setBrandTruck}
+          initialValue={item.type_truck.name+""}
         />
       </View>
       <View style={styles.viewInput}>

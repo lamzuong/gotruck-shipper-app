@@ -94,6 +94,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     borderColor: 'grey',
+    backgroundColor:"white"
   },
   itemMess: {
     marginBottom: 10,
@@ -120,6 +121,32 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: stylesGlobal.darkGrey,
     backgroundColor: 'white',
+  },
+  map: {
+    position: "absolute",
+    width: Dimensions.get("window").width,
+    height: Dimensions.get("window").height,
+  },
+  to_ad:{
+    fontWeight:"bold"
+  },
+  marker: {
+    textAlign: 'center',
+  },
+  coordinate: {
+    marginHorizontal: 75,
+    backgroundColor: 'white',
+    paddingHorizontal:5,
+    
+  },
+  title: {
+    fontWeight: 'bold',
+    fontSize: 15,
+    textAlign: 'center',
+  },
+  description: {
+    fontSize: 14,
+    textAlign: 'center',
   },
 });
 

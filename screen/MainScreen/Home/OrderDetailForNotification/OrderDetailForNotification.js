@@ -1,4 +1,4 @@
-import styles from './stylesNewOrderDetail';
+import styles from './stylesOrderDetailForNotification';
 import stylesGlobal from '../../../../global/stylesGlobal';
 import MyButton from '../../../../components/MyButton/MyButton';
 import ButtonAdd from '../../../../components/ButtonAdd/ButtonAdd';
@@ -8,10 +8,12 @@ import React, { useState } from 'react';
 import { Feather, Foundation, Ionicons, SimpleLineIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
-export default function NewOrderDetail({ handleCancelOrderParent,item, show, received }) {
+export default function OrderDetailForNotification() {
+  const route = useRoute();
+  const { item } = route.params;
   const navigation = useNavigation();
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={{ paddingHorizontal: 20 }}>
         <View style={[styles.inline, { marginTop: 10 }]}>
           <Text style={styles.label}>Mã đơn</Text>
@@ -41,7 +43,7 @@ export default function NewOrderDetail({ handleCancelOrderParent,item, show, rec
             <Text style={styles.label}>Người nhận</Text>
           </View>
           <View style={styles.inline}>
-            <Feather name="message-square" size={26} color="black" />
+            {/* <Feather name="message-square" size={26} color="black" /> */}
             <View style={{ width: 10 }}></View>
             <Feather name="phone" size={26} color="black" />
           </View>
@@ -73,37 +75,27 @@ export default function NewOrderDetail({ handleCancelOrderParent,item, show, rec
         </View>
       </View>
       <View style={{ paddingHorizontal: 20, marginBottom: 100 }}>
-        {received ? (
-          <View style={{ alignItems: 'center' }}>
-            <MyButton
-              type={'large'}
-              text="Đã giao hàng thành công"
-              btnColor={stylesGlobal.mainGreen}
-              txtColor="white"
-              action={() => {}}
-            />
-          </View>
-        ) : (
-          <View style={stylesGlobal.inlineBetween}>
-            <MyButton
-              type={'medium'}
-              text="Hủy chuyến"
-              btnColor={'red'}
-              txtColor="white"
-              action={() => {handleCancelOrderParent(item)}}
-            />
-            <MyButton
-              type={'medium'}
-              text="Đã nhận hàng"
-              btnColor={stylesGlobal.mainGreen}
-              txtColor="white"
-              action={() => {
-                navigation.navigate('ReceiveGoods');
-              }}
-            />
-          </View>
-        )}
+        <View style={stylesGlobal.inlineBetween}>
+          <MyButton
+            type={'medium'}
+            text="Hủy chuyến"
+            btnColor={'red'}
+            txtColor="white"
+            action={() => {
+              navigation.navigate('Home', { itemCancel: item });
+            }}
+          />
+          <MyButton
+            type={'medium'}
+            text="Chấp nhận"
+            btnColor={stylesGlobal.mainGreen}
+            txtColor="white"
+            action={() => {
+              navigation.navigate('Home', { checkHaveOrder: true, itemOrder: item });
+            }}
+          />
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
