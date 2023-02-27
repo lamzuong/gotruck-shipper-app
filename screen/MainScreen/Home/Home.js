@@ -92,30 +92,30 @@ export default function Home({ navigation, route }) {
     const truckDefault = user.infoAllTruck.find((tr) => tr.default === true);
     return truckDefault._id;
   };
+  const onSocketReceiveOrder = () => {
+    socketClient.off(getTruckDefault());
+    socketClient.on(getTruckDefault(), async (data) => {
+      const distanceTwoLocation = await getDistanceTwoLocation(locationShipper, data.from_address);
+      const distanceReceiveOrder = await axiosClient.get('gotruck/ordershipper/distancereceive');
+      if (
+        distanceTwoLocation >= 0 &&
+        distanceTwoLocation <= distanceReceiveOrder.distance_receive_order
+      ) {
+        console.log('Đã nhận đơn mới');
+        setListOrderNotify((prev) => {
+          return [...prev, data];
+        });
+      } else if (distanceTwoLocation < 0) {
+        console.log('Không có đường tới nơi nhận hàng');
+      } else {
+        console.log('Đơn hàng quá xa');
+      }
+    });
+  };
 
   useEffect(() => {
     if (status) {
-      socketClient.off(getTruckDefault());
-      socketClient.on(getTruckDefault(), async (data) => {
-        const distanceTwoLocation = await getDistanceTwoLocation(
-          locationShipper,
-          data.from_address,
-        );
-        const distanceReceiveOrder = await axiosClient.get('gotruck/ordershipper/distancereceive');
-        if (
-          distanceTwoLocation >= 0 &&
-          distanceTwoLocation <= distanceReceiveOrder.distance_receive_order
-        ) {
-          console.log('Đã nhận đơn mới');
-          setListOrderNotify((prev) => {
-            return [...prev, data];
-          });
-        } else if (distanceTwoLocation < 0) {
-          console.log('Không có đường tới nơi nhận hàng');
-        } else {
-          console.log('Đơn hàng quá xa');
-        }
-      });
+      onSocketReceiveOrder();
     } else {
       socketClient.off(getTruckDefault());
       setListOrderNotify([]);
@@ -125,14 +125,11 @@ export default function Home({ navigation, route }) {
     if (route.params != null) {
       if (route.params.itemCancel) {
         setListOrderNotify((prev) => {
-          const dataList = listOrderNotify;
-          var index = listOrderNotify.findIndex(
-            (e) => e.id_order === route.params.itemCancel.id_order,
-          );
+          const index = prev.findIndex((e) => e.id_order === route.params.itemCancel.id_order);
           if (index > -1) {
-            dataList.splice(index, 1);
+            prev.splice(index, 1);
           }
-          return [...dataList];
+          return [...prev];
         });
       } else if (route.params.checkHaveOrder) {
         (async function () {
@@ -144,12 +141,13 @@ export default function Home({ navigation, route }) {
           };
           updateNewOrder.status = 'Đã nhận';
           const res = await axiosClient.put('gotruck/ordershipper/', updateNewOrder);
-          console.log(res);
-          if (!res.shipper) {
+          if (res.status == 'Đã nhận') {
             socketClient.off(getTruckDefault());
             setOrderItem(route.params.itemOrder);
             setHaveOrder(true);
             socketClient.emit('shipper_receive', res);
+          } else if (res.status == 'Đã hủy') {
+            Alert.alert('Thông báo', 'Đơn hàng đã quá hạn');
           } else {
             Alert.alert('Thông báo', 'Đơn hàng đã được nhận bởi shipper khác');
           }
@@ -172,22 +170,64 @@ export default function Home({ navigation, route }) {
   //     clearInterval(timeId);
   //   };
   // }, []);
+  useEffect(() => {
+    socketClient.off(getTruckDefault() + 'received');
+    socketClient.on(getTruckDefault() + 'received', (data) => {
+      setListOrderNotify((prev) => {
+        const index = prev.findIndex((e) => e.id_order === data.id_order);
+        if (index > -1) {
+          prev.splice(index, 1);
+        }
+        return [...prev];
+      });
+    });
+    socketClient.off(getTruckDefault() + 'cancel');
+    socketClient.on(getTruckDefault() + 'cancel', async (data) => {
+      data.status = 'Đã hủy';
+      data.reason_cancel = {
+        user_cancel: 'AutoDelete',
+        content: 'Đơn hàng trong 15 phút không ai nhận',
+      };
+      const resOrderCancel = await axiosClient.put('gotruck/ordershipper/', data);
+      if (resOrderCancel.status === 'Đã hủy') {
+        setListOrderNotify((prev) => {
+          const index = prev.findIndex((e) => e.id_order === data.id_order);
+          if (index > -1) {
+            prev.splice(index, 1);
+          }
+          return [...prev];
+        });
+      }
+    });
+  }, []);
 
   const handleCancelOrder = async (item) => {
-    item.status = 'Đã hủy';
-    item.reason_cancel = {
-      user_cancel: 'Shipper',
-      content: 'Đơn hàng không hợp lệ',
-    };
-    const resOrderCancel = await axiosClient.put('gotruck/orderShipper/', item);
-    if (resOrderCancel.status === 'Đã hủy') {
-      setListOrderNotify([]);
-      setHaveOrder(false);
-      setShowMessage(false);
-      socketClient.emit('shipper_cancel', resOrderCancel);
-    }
+    Alert.alert('Xác nhận', 'Bạn chắc chắn muốn hủy đơn?', [
+      {
+        text: 'Hủy',
+        onPress: () => null,
+        style: 'cancel',
+      },
+      {
+        text: 'OK',
+        onPress: async () => {
+          item.status = 'Đã hủy';
+          item.reason_cancel = {
+            user_cancel: 'Shipper',
+            content: 'Đơn hàng không hợp lệ',
+          };
+          const resOrderCancel = await axiosClient.put('gotruck/ordershipper/', item);
+          if (resOrderCancel.status === 'Đã hủy') {
+            socketClient.emit('shipper_cancel', resOrderCancel);
+            setShowMessage(false);
+            setListOrderNotify([]);
+            setHaveOrder(false);
+            onSocketReceiveOrder();
+          }
+        },
+      },
+    ]);
   };
-
   return (
     <View style={styles.container}>
       <StatusBar />
@@ -321,6 +361,7 @@ export default function Home({ navigation, route }) {
                         key={i}
                         style={[stylesGlobal.inline, styles.itemMess]}
                         onPress={() => {
+                          setShowMessage(false);
                           navigation.navigate('OrderDetailForNotification', { item: e });
                         }}
                       >

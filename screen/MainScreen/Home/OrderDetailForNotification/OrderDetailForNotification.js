@@ -3,7 +3,7 @@ import stylesGlobal from '../../../../global/stylesGlobal';
 import MyButton from '../../../../components/MyButton/MyButton';
 import ButtonAdd from '../../../../components/ButtonAdd/ButtonAdd';
 
-import { View, Text, ScrollView, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, ScrollView, TouchableWithoutFeedback, Alert } from 'react-native';
 import React, { useState } from 'react';
 import { Feather, Foundation, Ionicons, SimpleLineIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -82,7 +82,19 @@ export default function OrderDetailForNotification() {
             btnColor={'red'}
             txtColor="white"
             action={() => {
-              navigation.navigate('Home', { itemCancel: item });
+              Alert.alert('Xác nhận', 'Bạn chắc chắn muốn hủy đơn?', [
+                {
+                  text: 'Hủy',
+                  onPress: () => null,
+                  style: 'cancel',
+                },
+                {
+                  text: 'OK',
+                  onPress: async () => {
+                    navigation.navigate('Home', { itemCancel: item });
+                  },
+                },
+              ]);
             }}
           />
           <MyButton
