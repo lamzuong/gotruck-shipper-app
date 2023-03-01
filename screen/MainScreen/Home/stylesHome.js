@@ -148,6 +148,42 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
+  centeredView: {
+    flex: 1,
+    backgroundColor: 'white',
+    position: 'absolute',
+    height: 250,
+    top: heightScreen / 4.5,
+    width: widthScreen / 1.2,
+    left:30,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 10,
+  },
+  close: {
+    top: 10,
+    alignItems: 'flex-end',
+    marginRight: 10,
+    marginBottom: 10,
+  },
+  contentCancel: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  viewInput: {
+    paddingHorizontal: 10,
+    marginBottom: 20,
+  },
+  label: {
+    marginBottom: 10,
+    fontSize: 16,
+  },
+  btnCancel: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    bottom: 10,
+  },
 });
 
 export default styles;

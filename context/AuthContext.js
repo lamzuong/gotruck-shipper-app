@@ -36,7 +36,7 @@ export const AuthContextProvider = ({ children }) => {
   useEffect(() => {
     (async function () {
       const addressCurrent = await getLocationCurrentOfUser();
-      if (addressCurrent) setAddress(addressCurrent);
+      // if (addressCurrent) setAddress(addressCurrent);
     }.call(this));
   }, []);
   return (

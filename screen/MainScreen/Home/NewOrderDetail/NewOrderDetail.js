@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 import { Feather, Foundation, Ionicons, SimpleLineIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
-export default function NewOrderDetail({ handleCancelOrderParent,item, show, received }) {
+export default function NewOrderDetail({ setShowModal, item, show, received }) {
   const navigation = useNavigation();
   return (
     <View style={styles.container}>
@@ -90,7 +90,9 @@ export default function NewOrderDetail({ handleCancelOrderParent,item, show, rec
               text="Hủy chuyến"
               btnColor={'red'}
               txtColor="white"
-              action={() => {handleCancelOrderParent(item)}}
+              action={() => {
+                setShowModal();
+              }}
             />
             <MyButton
               type={'medium'}

@@ -27,6 +27,8 @@ import { AuthContext } from '../../../context/AuthContext';
 import { socketClient } from '../../../global/socket';
 import axiosClient from '../../../api/axiosClient';
 import { getLocationCurrentOfUser, getDistanceTwoLocation } from '../../../global/ultilLocation';
+import MyInput from '../../../components/MyInput/MyInput';
+import MyButton from '../../../components/MyButton/MyButton';
 
 export default function Home({ navigation, route }) {
   const { dispath, user, locationNow } = useContext(AuthContext);
@@ -44,6 +46,10 @@ export default function Home({ navigation, route }) {
   const [orderItem, setOrderItem] = useState();
   const [showDetailOrigin, setshowDetailOrigin] = useState(true);
   const [locationShipper, setLocationShipper] = useState(locationNow);
+  const [showModal, setShowModal] = useState(false);
+  const [valid, setValid] = useState(false);
+  const [reason, setReason] = useState('');
+
   const stopZoomRef = useRef(false);
   const mapRef = useRef();
   const swipeUpDownRef = useRef();
@@ -143,6 +149,7 @@ export default function Home({ navigation, route }) {
           const res = await axiosClient.put('gotruck/ordershipper/', updateNewOrder);
           if (res.status == 'Đã nhận') {
             socketClient.off(getTruckDefault());
+            socketClient.off(getTruckDefault() + 'cancel');
             setOrderItem(route.params.itemOrder);
             setHaveOrder(true);
             socketClient.emit('shipper_receive', res);
@@ -202,31 +209,23 @@ export default function Home({ navigation, route }) {
   }, []);
 
   const handleCancelOrder = async (item) => {
-    Alert.alert('Xác nhận', 'Bạn chắc chắn muốn hủy đơn?', [
-      {
-        text: 'Hủy',
-        onPress: () => null,
-        style: 'cancel',
-      },
-      {
-        text: 'OK',
-        onPress: async () => {
-          item.status = 'Đã hủy';
-          item.reason_cancel = {
-            user_cancel: 'Shipper',
-            content: 'Đơn hàng không hợp lệ',
-          };
-          const resOrderCancel = await axiosClient.put('gotruck/ordershipper/', item);
-          if (resOrderCancel.status === 'Đã hủy') {
-            socketClient.emit('shipper_cancel', resOrderCancel);
-            setShowMessage(false);
-            setListOrderNotify([]);
-            setHaveOrder(false);
-            onSocketReceiveOrder();
-          }
-        },
-      },
-    ]);
+    item.status = 'Đã hủy';
+    item.reason_cancel = {
+      user_cancel: 'Shipper',
+      content: reason,
+    };
+    const resOrderCancel = await axiosClient.put('gotruck/ordershipper/', item);
+    if (resOrderCancel.status === 'Đã hủy') {
+      socketClient.emit('shipper_cancel', resOrderCancel);
+      setReason('');
+      setValid(false);
+      setShowModal(false);
+      setshowDetailOrigin(!showDetailOrigin)
+      setShowMessage(false);
+      setListOrderNotify([]);
+      setHaveOrder(false);
+      onSocketReceiveOrder();
+    }
   };
   return (
     <View style={styles.container}>
@@ -264,7 +263,7 @@ export default function Home({ navigation, route }) {
                 }}
                 onError={(e) => {
                   console.log(e);
-                  Alert.alert('Thông báo', 'Vị trí bạn chọn không được hỗ trợ vận chuyển');
+                  Alert.alert('Thông báo', 'Không tìm thấy đường đi tới nơi lấy hàng\nĐơn hàng sẽ bị hủy');
                 }}
               />
               {/* <Marker
@@ -281,7 +280,7 @@ export default function Home({ navigation, route }) {
                 {showDetailOrigin && (
                   <View style={styles.coordinate}>
                     <Text style={styles.title}>Vị trí nhận hàng</Text>
-                    <Text style={styles.description}>{orderItem.from_address.address}</Text>
+                    <Text style={styles.description}>{orderItem?.from_address?.address}</Text>
                   </View>
                 )}
                 <Ionicons name="location" size={30} color="red" style={styles.marker} />
@@ -418,7 +417,7 @@ export default function Home({ navigation, route }) {
             <ScrollView showsVerticalScrollIndicator={false}>
               <TouchableWithoutFeedback>
                 <NewOrderDetail
-                  handleCancelOrderParent={handleCancelOrder}
+                  setShowModal={() => setShowModal(true)}
                   item={orderItem}
                   show={'mini'}
                   received={received}
@@ -431,7 +430,7 @@ export default function Home({ navigation, route }) {
               <TouchableWithoutFeedback>
                 <View>
                   <NewOrderDetail
-                    handleCancelOrderParent={handleCancelOrder}
+                    setShowModal={() => setShowModal(true)}
                     item={orderItem}
                     show={'full'}
                     received={received}
@@ -456,6 +455,53 @@ export default function Home({ navigation, route }) {
           }}
           extraMarginTop={20}
         />
+      )}
+      {showModal && (
+        <View style={styles.centeredView}>
+          <View style={styles.close}>
+            <AntDesign
+              onPress={() => setShowModal(!showModal)}
+              name="close"
+              size={30}
+              color="black"
+            />
+          </View>
+          <View style={styles.contentCancel}>
+            <View style={styles.viewInput}>
+              <Text style={styles.label}>Lý do hủy</Text>
+              <MyInput
+                borderWidth={1}
+                value={setReason}
+                valid={setValid}
+                regex={/^.+/}
+                multiline={true}
+                inputName={true}
+                error={'Không được để trống'}
+              />
+            </View>
+          </View>
+          {valid ? (
+            <View style={styles.btnCancel}>
+              <MyButton
+                type={'medium'}
+                btnColor={'red'}
+                txtColor={'white'}
+                text="Hủy"
+                action={() => handleCancelOrder(orderItem)}
+              />
+            </View>
+          ) : (
+            <View style={styles.btnCancel}>
+              <MyButton
+                type={'medium'}
+                btnColor={'rgb(240,128,128)'}
+                txtColor={'white'}
+                text="Hủy"
+                disable={true}
+              />
+            </View>
+          )}
+        </View>
       )}
     </View>
   );
