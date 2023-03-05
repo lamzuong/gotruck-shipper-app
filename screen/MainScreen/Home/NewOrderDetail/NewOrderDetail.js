@@ -3,13 +3,34 @@ import stylesGlobal from '../../../../global/stylesGlobal';
 import MyButton from '../../../../components/MyButton/MyButton';
 import ButtonAdd from '../../../../components/ButtonAdd/ButtonAdd';
 
-import { View, Text, ScrollView, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, ScrollView, TouchableWithoutFeedback, Alert } from 'react-native';
 import React, { useState } from 'react';
 import { Feather, Foundation, Ionicons, SimpleLineIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { getDistanceTwoLocation } from '../../../../global/ultilLocation';
 
-export default function NewOrderDetail({ setShowModal, item, show, received }) {
+export default function NewOrderDetail({ setShowModal, item, show, received, locationShipper }) {
   const navigation = useNavigation();
+  const handleShippedGoods = async () => {
+    const distanceTwoLocation = await getDistanceTwoLocation(locationShipper, item.to_address);
+    if (distanceTwoLocation > 1000) {
+      Alert.alert(
+        'Xác nhận',
+        'Vị trí của bạn khác vị trí giao hàng!\nChúng tôi sẽ ghi nhận và thông báo cho khách hàng nếu bạn tiếp tục',
+        [
+          {
+            text: 'Hủy',
+            onPress: () => null,
+            style: 'cancel',
+          },
+          { text: 'OK', onPress: () => navigation.navigate('ShippedGoods', { item: item }) },
+        ],
+      );
+    }
+    else{
+      navigation.navigate('ShippedGoods', { item: item })
+    }
+  };
   return (
     <View style={styles.container}>
       <View style={{ paddingHorizontal: 20 }}>
@@ -58,11 +79,11 @@ export default function NewOrderDetail({ setShowModal, item, show, received }) {
         <View style={{ marginVertical: 20 }}>
           <View style={styles.inline}>
             <Text style={styles.labelFooter}>Khoảng cách</Text>
-            <Text style={styles.content}>{item.distance}</Text>
+            <Text style={styles.content}>{item.distance} km</Text>
           </View>
           <View style={styles.inline}>
             <Text style={styles.labelFooter}>Thời gian dự kiến</Text>
-            <Text style={styles.content}>{item.expectedTime}</Text>
+            <Text style={styles.content}>{item.expectedTime} phút</Text>
           </View>
           <View style={styles.inline}>
             <Text style={styles.labelFooter}>Chi phí vận chuyển</Text>
@@ -80,7 +101,7 @@ export default function NewOrderDetail({ setShowModal, item, show, received }) {
               text="Đã giao hàng thành công"
               btnColor={stylesGlobal.mainGreen}
               txtColor="white"
-              action={() => {}}
+              action={() => handleShippedGoods()}
             />
           </View>
         ) : (
@@ -100,7 +121,7 @@ export default function NewOrderDetail({ setShowModal, item, show, received }) {
               btnColor={stylesGlobal.mainGreen}
               txtColor="white"
               action={() => {
-                navigation.navigate('ReceiveGoods');
+                navigation.navigate('ReceiveGoods', { item: item });
               }}
             />
           </View>

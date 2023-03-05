@@ -60,11 +60,11 @@ export default function OrderDetailForNotification() {
         <View style={{ marginVertical: 20 }}>
           <View style={styles.inline}>
             <Text style={styles.labelFooter}>Khoảng cách</Text>
-            <Text style={styles.content}>{item.distance}</Text>
+            <Text style={styles.content}>{item.distance} km</Text>
           </View>
           <View style={styles.inline}>
             <Text style={styles.labelFooter}>Thời gian dự kiến</Text>
-            <Text style={styles.content}>{item.expectedTime}</Text>
+            <Text style={styles.content}>{item.expectedTime} phút</Text>
           </View>
           <View style={styles.inline}>
             <Text style={styles.labelFooter}>Chi phí vận chuyển</Text>

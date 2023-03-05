@@ -10,16 +10,27 @@ export const getLocationCurrentOfUser = async () => {
   }
   const location = await Location.getCurrentPositionAsync({});
   Geocoder.init(GOOGLE_API_KEY, {
-    language: 'vn',
+    language: 'vi',
   });
   const dataGeocoder = await Geocoder.from({
     latitude: location.coords.latitude,
     longitude: location.coords.longitude,
   });
+
+  let addressCurrent = dataGeocoder?.results[0]?.formatted_address;
+  const temp = addressCurrent.split(',', 1);
+  addressCurrent.replace(temp + ', ', '');
+
+  for (let i = 0; i < 2; i++) {
+    if (!isPlusCode(dataGeocoder?.results[i].formatted_address)) {
+      addressCurrent = dataGeocoder?.results[i].formatted_address;
+      break;
+    }
+  }
   const data = {
+    address: addressCurrent,
     latitude: location.coords.latitude,
     longitude: location.coords.longitude,
-    address: dataGeocoder?.results[0].formatted_address,
   };
   return data;
 };
@@ -42,4 +53,14 @@ export const getDistanceTwoLocation = async (addressFrom, addressTo) => {
       });
     return data;
   }
+};
+
+//
+// ex: H6QC+MW, Linh Xuân, Thủ Đức, Hồ Chí Minh, Việt Nam
+//     VHCW+2H Hóc Môn, Thành phố Hồ Chí Minh, Việt Nam
+// H6QC+MW, VHCW+2H là không nên
+const isPlusCode = (address) => {
+  const temp = address.split(',', 1);
+  const plusCodeRegex = /^[0-9A-Z]*\+[0-9A-Z]*$/;
+  return plusCodeRegex.test(temp);
 };

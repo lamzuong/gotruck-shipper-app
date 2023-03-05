@@ -32,7 +32,6 @@ import MyButton from '../../../components/MyButton/MyButton';
 
 export default function Home({ navigation, route }) {
   const { dispath, user, locationNow } = useContext(AuthContext);
-
   const [status, setStatus] = useState(false);
   const [expand, setExpand] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
@@ -45,6 +44,8 @@ export default function Home({ navigation, route }) {
   const [heightSwip, setHeightSwip] = useState(250);
   const [orderItem, setOrderItem] = useState();
   const [showDetailOrigin, setshowDetailOrigin] = useState(true);
+  const [showDetailDestination, setshowDetailDestination] = useState(true);
+
   const [locationShipper, setLocationShipper] = useState(locationNow);
   const [showModal, setShowModal] = useState(false);
   const [valid, setValid] = useState(false);
@@ -83,10 +84,16 @@ export default function Home({ navigation, route }) {
     left: edgePaddingValue,
   };
 
-  const zoomMap = () => {
-    mapRef.current?.fitToCoordinates([locationShipper, orderItem.from_address], {
-      edgePadding,
-    });
+  const zoomMap = (typeZoom) => {
+    if (typeZoom === 'from' && orderItem)
+      mapRef.current?.fitToCoordinates([locationShipper, orderItem?.from_address], {
+        edgePadding,
+      });
+    else if (typeZoom === 'to' && orderItem) {
+      mapRef.current?.fitToCoordinates([locationShipper, orderItem?.to_address], {
+        edgePadding,
+      });
+    }
   };
 
   const getTruckDefault = () => {
@@ -107,7 +114,6 @@ export default function Home({ navigation, route }) {
         distanceTwoLocation >= 0 &&
         distanceTwoLocation <= distanceReceiveOrder.distance_receive_order
       ) {
-        console.log('Đã nhận đơn mới');
         setListOrderNotify((prev) => {
           return [...prev, data];
         });
@@ -147,27 +153,43 @@ export default function Home({ navigation, route }) {
           };
           updateNewOrder.status = 'Đã nhận';
           const res = await axiosClient.put('gotruck/ordershipper/', updateNewOrder);
-          if (res.status == 'Đã nhận') {
+          if (res.status === 'Đã nhận' && res.shipper.id_shipper === user._id) {
             socketClient.off(getTruckDefault());
             socketClient.off(getTruckDefault() + 'cancel');
-            setOrderItem(route.params.itemOrder);
+            setOrderItem((prev) => route.params.itemOrder);
             setHaveOrder(true);
             socketClient.emit('shipper_receive', res);
-          } else if (res.status == 'Đã hủy') {
+          } else if (res.status == 'Đã hủy' && res.reason_cancel.user_cancel === 'AutoDelete') {
             Alert.alert('Thông báo', 'Đơn hàng đã quá hạn');
+          } else if (res.status == 'Đã hủy' && res.reason_cancel.user_cancel === 'Customer') {
+            Alert.alert('Thông báo', 'Đơn hàng đã bị khách hàng hủy');
           } else {
             Alert.alert('Thông báo', 'Đơn hàng đã được nhận bởi shipper khác');
           }
         }.call(this));
+      } else if (route.params.receivedGoods) {
+        zoomMap('to');
+        setHeightSwip(120);
+        setReceived(true);
+        setshowDetailOrigin(!showDetailOrigin);
+      } else if (route.params.completed) {
+        setHaveOrder(false);
+        setReceived(false);
+        setshowDetailDestination(true);
+        setshowDetailOrigin(true);
+        setShowMessage(false);
+        setListOrderNotify([]);
+        onSocketReceiveOrder();
+        onSocketCancel();
+        stopZoomRef.current = false;
       } else {
-        if (route.params.received) setReceived(true);
-        swipeUpDownRef.current.showMini();
+        console.log('err Home' + route.params);
       }
     }
   }, [route]);
 
   // useEffect(() => {
-  //   console.log('Strat');
+  //   console.log('Start');
   //   const timeId = setInterval(async () => {
   //     console.log('10s');
   //     const location = await getLocationCurrentOfUser();
@@ -177,6 +199,7 @@ export default function Home({ navigation, route }) {
   //     clearInterval(timeId);
   //   };
   // }, []);
+
   useEffect(() => {
     socketClient.off(getTruckDefault() + 'received');
     socketClient.on(getTruckDefault() + 'received', (data) => {
@@ -188,15 +211,39 @@ export default function Home({ navigation, route }) {
         return [...prev];
       });
     });
+    onSocketCancel();
+    socketClient.off(getTruckDefault() + 'cancel_received');
+    socketClient.on(getTruckDefault() + 'cancel_received', async (data) => {
+      Alert.alert('Thông báo', 'Đơn hàng đã bị hủy bởi khách hàng');
+      setReason('');
+      setValid(false);
+      setShowModal(false);
+      setshowDetailOrigin(!showDetailOrigin);
+      setShowMessage(false);
+      setListOrderNotify([]);
+      setHaveOrder(false);
+      onSocketReceiveOrder();
+    });
+  }, []);
+
+  const onSocketCancel = () => {
     socketClient.off(getTruckDefault() + 'cancel');
     socketClient.on(getTruckDefault() + 'cancel', async (data) => {
-      data.status = 'Đã hủy';
-      data.reason_cancel = {
-        user_cancel: 'AutoDelete',
-        content: 'Đơn hàng trong 15 phút không ai nhận',
-      };
-      const resOrderCancel = await axiosClient.put('gotruck/ordershipper/', data);
-      if (resOrderCancel.status === 'Đã hủy') {
+      if (data.status === 'Đã hủy') {
+        setListOrderNotify((prev) => {
+          const index = prev.findIndex((e) => e.id_order === data.id_order);
+          if (index > -1) {
+            prev.splice(index, 1);
+          }
+          return [...prev];
+        });
+      } else {
+        data.status = 'Đã hủy';
+        data.reason_cancel = {
+          user_cancel: 'AutoDelete',
+          content: 'Đơn hàng trong 15 phút không ai nhận',
+        };
+        const resOrderCancel = await axiosClient.put('gotruck/ordershipper/', data);
         setListOrderNotify((prev) => {
           const index = prev.findIndex((e) => e.id_order === data.id_order);
           if (index > -1) {
@@ -206,7 +253,7 @@ export default function Home({ navigation, route }) {
         });
       }
     });
-  }, []);
+  };
 
   const handleCancelOrder = async (item) => {
     item.status = 'Đã hủy';
@@ -216,11 +263,16 @@ export default function Home({ navigation, route }) {
     };
     const resOrderCancel = await axiosClient.put('gotruck/ordershipper/', item);
     if (resOrderCancel.status === 'Đã hủy') {
-      socketClient.emit('shipper_cancel', resOrderCancel);
+      if (resOrderCancel.reason_cancel.user_cancel === 'Shipper') {
+        socketClient.emit('shipper_cancel', resOrderCancel);
+      }
+      if (resOrderCancel.reason_cancel.user_cancel === 'Customer') {
+        Alert.alert('Thông báo', 'Đơn hàng đã bị hủy bởi khách hàng');
+      }
       setReason('');
       setValid(false);
       setShowModal(false);
-      setshowDetailOrigin(!showDetailOrigin)
+      setshowDetailOrigin(!showDetailOrigin);
       setShowMessage(false);
       setListOrderNotify([]);
       setHaveOrder(false);
@@ -244,48 +296,87 @@ export default function Home({ navigation, route }) {
       >
         {haveOrder ? (
           locationShipper ? (
-            <>
-              <MapViewDirections
-                origin={locationShipper}
-                destination={orderItem.from_address}
-                apikey={GOOGLE_API_KEY}
-                strokeColor="rgb(0,176,255)"
-                strokeWidth={4}
-                mode="DRIVING"
-                onReady={() => {
-                  if (stopZoomRef.current === false) {
-                    console.log('zom');
-                    zoomMap();
-                    stopZoomRef.current = true;
-                  } else {
-                    console.log('stop zom');
-                  }
-                }}
-                onError={(e) => {
-                  console.log(e);
-                  Alert.alert('Thông báo', 'Không tìm thấy đường đi tới nơi lấy hàng\nĐơn hàng sẽ bị hủy');
-                }}
-              />
-              {/* <Marker
-              coordinate={locationNow}
-              description={locationNow.address}
-              title="Vị trí giao hàng"
-            /> */}
-              <Marker
-                coordinate={orderItem.from_address}
-                onPress={() => {
-                  setshowDetailOrigin(!showDetailOrigin);
-                }}
-              >
-                {showDetailOrigin && (
-                  <View style={styles.coordinate}>
-                    <Text style={styles.title}>Vị trí nhận hàng</Text>
-                    <Text style={styles.description}>{orderItem?.from_address?.address}</Text>
-                  </View>
-                )}
-                <Ionicons name="location" size={30} color="red" style={styles.marker} />
-              </Marker>
-            </>
+            received ? (
+              <>
+                <MapViewDirections
+                  origin={locationShipper}
+                  destination={orderItem?.to_address}
+                  apikey={GOOGLE_API_KEY}
+                  strokeColor="rgb(0,176,255)"
+                  strokeWidth={4}
+                  mode="DRIVING"
+                  onReady={() => {
+                    if (stopZoomRef.current === false) {
+                      zoomMap('to');
+                      stopZoomRef.current = true;
+                    }
+                  }}
+                  onError={(e) => {
+                    console.log(e);
+                    Alert.alert('Thông báo', 'Không tìm thấy đường đi tới nơi giao hàng');
+                  }}
+                />
+                <Marker
+                  coordinate={orderItem?.to_address}
+                  onPress={() => {
+                    setshowDetailDestination(!showDetailDestination);
+                  }}
+                >
+                  {showDetailDestination && (
+                    <View style={styles.coordinate}>
+                      <Text style={styles.title}>Vị trí giao hàng</Text>
+                      <Text style={styles.description}>{orderItem?.to_address?.address}</Text>
+                    </View>
+                  )}
+                  <Ionicons name="location" size={30} color="red" style={styles.marker} />
+                </Marker>
+              </>
+            ) : (
+              <>
+                <MapViewDirections
+                  origin={locationShipper}
+                  destination={orderItem.from_address}
+                  apikey={GOOGLE_API_KEY}
+                  strokeColor="rgb(0,176,255)"
+                  strokeWidth={4}
+                  mode="DRIVING"
+                  onReady={() => {
+                    if (stopZoomRef.current === false) {
+                      zoomMap('from');
+                      stopZoomRef.current = true;
+                    }
+                  }}
+                  onError={(e) => {
+                    console.log(locationNow);
+                    console.log(orderItem.from_address);
+                    console.log(e);
+                    Alert.alert(
+                      'Thông báo',
+                      'Không tìm thấy đường đi tới nơi lấy hàng\nĐơn hàng sẽ bị hủy',
+                    );
+                  }}
+                />
+                <Marker
+                  coordinate={orderItem.from_address}
+                  onPress={() => {
+                    setshowDetailOrigin(!showDetailOrigin);
+                  }}
+                >
+                  {showDetailOrigin && (
+                    <View style={styles.coordinate}>
+                      <Text style={styles.title}>Vị trí nhận hàng</Text>
+                      <Text style={styles.description}>{orderItem?.from_address?.address}</Text>
+                    </View>
+                  )}
+                  <Ionicons
+                    name="location"
+                    size={30}
+                    color={stylesGlobal.mainGreen || 'cyan'}
+                    style={styles.marker}
+                  />
+                </Marker>
+              </>
+            )
           ) : (
             <></>
           )
@@ -420,6 +511,7 @@ export default function Home({ navigation, route }) {
                   setShowModal={() => setShowModal(true)}
                   item={orderItem}
                   show={'mini'}
+                  locationShipper={locationShipper}
                   received={received}
                 />
               </TouchableWithoutFeedback>
@@ -433,6 +525,7 @@ export default function Home({ navigation, route }) {
                     setShowModal={() => setShowModal(true)}
                     item={orderItem}
                     show={'full'}
+                    locationShipper={locationShipper}
                     received={received}
                   />
                 </View>

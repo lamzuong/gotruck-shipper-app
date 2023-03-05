@@ -28,15 +28,15 @@ export const AuthContext = createContext(INITIAL_STATE);
 export const AuthContextProvider = ({ children }) => {
   const [state, dispatch] = useReducer(AuthReducer, INITIAL_STATE);
   const [address, setAddress] = useState({
-    address: '12 Nguyễn Văn Bảo, Phường 4, Gò Vấp, Thành phố Hồ Chí Minh',
-    latitude: 10.820685,
-    longitude: 106.687631,
+    address: '58/5K Truông Tre, Linh Xuân, Thủ Đức, Bình Dương, Việt Nam',
+    latitude: 10.890244509604937,
+    longitude: 106.7674527621348,
   });
 
   useEffect(() => {
     (async function () {
       const addressCurrent = await getLocationCurrentOfUser();
-      // if (addressCurrent) setAddress(addressCurrent);
+      if (addressCurrent) setAddress(addressCurrent);
     }.call(this));
   }, []);
   return (
