@@ -40,8 +40,14 @@ const publicRoutes = [
     title: 'Chụp ảnh khi nhận hàng',
     animation: 'slide_from_right',
   },
-  { name: 'ShippedGoods', component: ShippedGoods, header: true,title: 'Chụp ảnh khi giao hàng', animation: 'slide_from_right' },
-  { name: 'FinishPage', component: FinishPage, header: true,title: 'Hoàn thành' },
+  {
+    name: 'ShippedGoods',
+    component: ShippedGoods,
+    header: true,
+    title: 'Chụp ảnh khi giao hàng',
+    animation: 'slide_from_right',
+  },
+  { name: 'FinishPage', component: FinishPage, header: false },
 
   ,
   {

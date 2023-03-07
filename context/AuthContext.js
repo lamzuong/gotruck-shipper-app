@@ -8,7 +8,6 @@ import { GOOGLE_API_KEY } from '../global/keyGG';
 import { getLocationCurrentOfUser } from '../global/ultilLocation';
 const INITIAL_STATE = {
   user: null,
-
   locationNow: null,
 };
 

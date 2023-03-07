@@ -2,6 +2,7 @@ import * as Location from 'expo-location';
 import Geocoder from 'react-native-geocoding';
 import { GOOGLE_API_KEY } from './keyGG';
 import MapViewDirections from 'react-native-maps-directions';
+
 export const getLocationCurrentOfUser = async () => {
   const { status } = await Location.requestForegroundPermissionsAsync();
   if (status !== 'granted') {
@@ -55,6 +56,34 @@ export const getDistanceTwoLocation = async (addressFrom, addressTo) => {
   }
 };
 
+export const getAddressFromCoordinate = async (location) => {
+  Geocoder.init(GOOGLE_API_KEY, {
+    language: 'vi',
+  });
+  const dataGeocoder = await Geocoder.from({
+    latitude: location.latitude,
+    longitude: location.longitude,
+  });
+
+  let addressCurrent = dataGeocoder?.results[0]?.formatted_address;
+  const temp = addressCurrent.split(',', 1);
+  addressCurrent.replace(temp + ', ', '');
+
+  for (let i = 0; i < 2; i++) {
+    if (!isPlusCode(dataGeocoder?.results[i].formatted_address)) {
+      addressCurrent = dataGeocoder?.results[i].formatted_address;
+      break;
+    }
+  }
+  const data = {
+    address: addressCurrent,
+    latitude: location.latitude,
+    longitude: location.longitude,
+  };
+  return data;
+};
+
+
 //
 // ex: H6QC+MW, Linh Xuân, Thủ Đức, Hồ Chí Minh, Việt Nam
 //     VHCW+2H Hóc Môn, Thành phố Hồ Chí Minh, Việt Nam
@@ -64,3 +93,4 @@ const isPlusCode = (address) => {
   const plusCodeRegex = /^[0-9A-Z]*\+[0-9A-Z]*$/;
   return plusCodeRegex.test(temp);
 };
+

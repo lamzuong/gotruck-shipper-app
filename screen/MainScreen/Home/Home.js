@@ -43,8 +43,7 @@ export default function Home({ navigation, route }) {
   const [listOrderNotify, setListOrderNotify] = useState([]);
   const [heightSwip, setHeightSwip] = useState(250);
   const [orderItem, setOrderItem] = useState();
-  const [showDetailOrigin, setshowDetailOrigin] = useState(true);
-  const [showDetailDestination, setshowDetailDestination] = useState(true);
+  const [showDetail, setshowDetail] = useState(true);
 
   const [locationShipper, setLocationShipper] = useState(locationNow);
   const [showModal, setShowModal] = useState(false);
@@ -60,20 +59,20 @@ export default function Home({ navigation, route }) {
   const LATITUDE_DELTA = 0.02;
   const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
-  // let INITIAL_POSITION = {
-  //   latitude: locationNow?.latitude || 10.820685,
-  //   longitude: locationNow?.longitude || 106.687631,
-  //   latitudeDelta: LATITUDE_DELTA,
-  //   longitudeDelta: LONGITUDE_DELTA,
-  // };
-
-  //Test
   let INITIAL_POSITION = {
-    latitude: 10.820685,
-    longitude: 106.687631,
+    latitude: locationNow?.latitude || 10.820685,
+    longitude: locationNow?.longitude || 106.687631,
     latitudeDelta: LATITUDE_DELTA,
     longitudeDelta: LONGITUDE_DELTA,
   };
+
+  //Test
+  // let INITIAL_POSITION = {
+  //   latitude: 10.820685,
+  //   longitude: 106.687631,
+  //   latitudeDelta: LATITUDE_DELTA,
+  //   longitudeDelta: LONGITUDE_DELTA,
+  // };
 
   const edgePaddingValue = 70;
 
@@ -85,17 +84,19 @@ export default function Home({ navigation, route }) {
   };
 
   const zoomMap = (typeZoom) => {
-    if (typeZoom === 'from' && orderItem)
+    console.log('zom');
+    if (typeZoom === 'from' && orderItem) {
+      console.log(1);
       mapRef.current?.fitToCoordinates([locationShipper, orderItem?.from_address], {
         edgePadding,
       });
-    else if (typeZoom === 'to' && orderItem) {
+    } else if (typeZoom === 'to' && orderItem) {
       mapRef.current?.fitToCoordinates([locationShipper, orderItem?.to_address], {
         edgePadding,
       });
+      console.log(2);
     }
   };
-
   const getTruckDefault = () => {
     const truckDefault = user.infoAllTruck.find((tr) => tr.default === true);
     return truckDefault.type_truck.name + '';
@@ -108,6 +109,7 @@ export default function Home({ navigation, route }) {
   const onSocketReceiveOrder = () => {
     socketClient.off(getTruckDefault());
     socketClient.on(getTruckDefault(), async (data) => {
+      console.log(locationShipper.address);
       const distanceTwoLocation = await getDistanceTwoLocation(locationShipper, data.from_address);
       const distanceReceiveOrder = await axiosClient.get('gotruck/ordershipper/distancereceive');
       if (
@@ -133,6 +135,7 @@ export default function Home({ navigation, route }) {
       setListOrderNotify([]);
     }
   }, [status]);
+
   useEffect(() => {
     if (route.params != null) {
       if (route.params.itemCancel) {
@@ -168,15 +171,12 @@ export default function Home({ navigation, route }) {
           }
         }.call(this));
       } else if (route.params.receivedGoods) {
-        zoomMap('to');
+        stopZoomRef.current = false;
         setHeightSwip(120);
         setReceived(true);
-        setshowDetailOrigin(!showDetailOrigin);
       } else if (route.params.completed) {
         setHaveOrder(false);
         setReceived(false);
-        setshowDetailDestination(true);
-        setshowDetailOrigin(true);
         setShowMessage(false);
         setListOrderNotify([]);
         onSocketReceiveOrder();
@@ -187,18 +187,6 @@ export default function Home({ navigation, route }) {
       }
     }
   }, [route]);
-
-  // useEffect(() => {
-  //   console.log('Start');
-  //   const timeId = setInterval(async () => {
-  //     console.log('10s');
-  //     const location = await getLocationCurrentOfUser();
-  //     setLocationShipper((prev) => location);
-  //   }, 10000);
-  //   return () => {
-  //     clearInterval(timeId);
-  //   };
-  // }, []);
 
   useEffect(() => {
     socketClient.off(getTruckDefault() + 'received');
@@ -218,13 +206,14 @@ export default function Home({ navigation, route }) {
       setReason('');
       setValid(false);
       setShowModal(false);
-      setshowDetailOrigin(!showDetailOrigin);
       setShowMessage(false);
       setListOrderNotify([]);
       setHaveOrder(false);
       onSocketReceiveOrder();
     });
   }, []);
+
+ 
 
   const onSocketCancel = () => {
     socketClient.off(getTruckDefault() + 'cancel');
@@ -272,13 +261,31 @@ export default function Home({ navigation, route }) {
       setReason('');
       setValid(false);
       setShowModal(false);
-      setshowDetailOrigin(!showDetailOrigin);
       setShowMessage(false);
       setListOrderNotify([]);
       setHaveOrder(false);
       onSocketReceiveOrder();
     }
   };
+
+
+
+  useEffect(() => {
+    console.log('Start');
+    const timeId = setInterval(async () => {
+      console.log('10s');
+      const location = await getLocationCurrentOfUser();
+      socketClient.emit('location_shipper', {
+        id_order: orderItem?.id_order || "",
+        locationShipper: location,
+      });
+      setLocationShipper(location);
+    }, 10000);
+    return () => {
+      clearInterval(timeId);
+    };
+  }, []);
+
   return (
     <View style={styles.container}>
       <StatusBar />
@@ -287,102 +294,86 @@ export default function Home({ navigation, route }) {
         style={styles.map}
         provider={PROVIDER_GOOGLE}
         initialRegion={INITIAL_POSITION}
-        showsUserLocation={true}
-        showsMyLocationButton={true}
+        // showsUserLocation={true}
+        // showsMyLocationButton={true}
         zoomEnabled={true}
         addressForCoordinate={(e) => {
           console.log(e);
         }}
       >
-        {haveOrder ? (
-          locationShipper ? (
-            received ? (
-              <>
-                <MapViewDirections
-                  origin={locationShipper}
-                  destination={orderItem?.to_address}
-                  apikey={GOOGLE_API_KEY}
-                  strokeColor="rgb(0,176,255)"
-                  strokeWidth={4}
-                  mode="DRIVING"
-                  onReady={() => {
-                    if (stopZoomRef.current === false) {
-                      zoomMap('to');
-                      stopZoomRef.current = true;
-                    }
-                  }}
-                  onError={(e) => {
-                    console.log(e);
-                    Alert.alert('Thông báo', 'Không tìm thấy đường đi tới nơi giao hàng');
-                  }}
-                />
-                <Marker
-                  coordinate={orderItem?.to_address}
-                  onPress={() => {
-                    setshowDetailDestination(!showDetailDestination);
-                  }}
-                >
-                  {showDetailDestination && (
-                    <View style={styles.coordinate}>
-                      <Text style={styles.title}>Vị trí giao hàng</Text>
-                      <Text style={styles.description}>{orderItem?.to_address?.address}</Text>
-                    </View>
-                  )}
-                  <Ionicons name="location" size={30} color="red" style={styles.marker} />
-                </Marker>
-              </>
-            ) : (
-              <>
-                <MapViewDirections
-                  origin={locationShipper}
-                  destination={orderItem.from_address}
-                  apikey={GOOGLE_API_KEY}
-                  strokeColor="rgb(0,176,255)"
-                  strokeWidth={4}
-                  mode="DRIVING"
-                  onReady={() => {
-                    if (stopZoomRef.current === false) {
-                      zoomMap('from');
-                      stopZoomRef.current = true;
-                    }
-                  }}
-                  onError={(e) => {
-                    console.log(locationNow);
-                    console.log(orderItem.from_address);
-                    console.log(e);
-                    Alert.alert(
-                      'Thông báo',
-                      'Không tìm thấy đường đi tới nơi lấy hàng\nĐơn hàng sẽ bị hủy',
-                    );
-                  }}
-                />
-                <Marker
-                  coordinate={orderItem.from_address}
-                  onPress={() => {
-                    setshowDetailOrigin(!showDetailOrigin);
-                  }}
-                >
-                  {showDetailOrigin && (
-                    <View style={styles.coordinate}>
-                      <Text style={styles.title}>Vị trí nhận hàng</Text>
-                      <Text style={styles.description}>{orderItem?.from_address?.address}</Text>
-                    </View>
-                  )}
-                  <Ionicons
-                    name="location"
-                    size={30}
-                    color={stylesGlobal.mainGreen || 'cyan'}
-                    style={styles.marker}
-                  />
-                </Marker>
-              </>
-            )
-          ) : (
-            <></>
-          )
-        ) : (
-          <></>
+        {haveOrder && (
+          <MapViewDirections
+            origin={locationShipper}
+            destination={received ? orderItem.to_address : orderItem.from_address}
+            apikey={GOOGLE_API_KEY}
+            strokeColor="rgb(0,176,255)"
+            strokeWidth={4}
+            mode="DRIVING"
+            onReady={() => {
+              if (stopZoomRef.current === false) {
+                if (received) {
+                  zoomMap('from');
+                } else {
+                  zoomMap('to');
+                }
+                stopZoomRef.current = true;
+              }
+            }}
+            onError={(e) => {
+              console.log(e);
+              Alert.alert(
+                'Thông báo',
+                'Không tìm thấy đường đi tới nơi lấy hàng\nĐơn hàng sẽ bị hủy',
+              );
+            }}
+          />
         )}
+        {haveOrder &&
+          (received ? (
+            <Marker
+              coordinate={orderItem.to_address}
+              onPress={() => {
+                setshowDetail(!showDetail);
+              }}
+            >
+              {showDetail && (
+                <View style={styles.coordinate}>
+                  <Text style={styles.title}>Vị trí giao hàng</Text>
+                  <Text style={styles.description}>{orderItem?.to_address?.address}</Text>
+                </View>
+              )}
+              <Ionicons name="location" size={30} color={'red'} style={styles.marker} />
+            </Marker>
+          ) : (
+            <Marker
+              coordinate={orderItem.from_address}
+              onPress={() => {
+                setshowDetail(!showDetail);
+              }}
+            >
+              {showDetail && (
+                <View style={styles.coordinate}>
+                  <Text style={styles.title}>Vị trí nhận hàng</Text>
+                  <Text style={styles.description}>{orderItem?.from_address?.address}</Text>
+                </View>
+              )}
+              <Ionicons
+                name="location"
+                size={30}
+                color={stylesGlobal.mainGreen}
+                style={styles.marker}
+              />
+            </Marker>
+          ))}
+
+        <Marker coordinate={locationShipper}>
+          <MaterialIcons
+            name="local-shipping"
+            style={styles.marker}
+            size={30}
+            color={stylesGlobal.mainGreen}
+          />
+        </Marker>
       </MapView>
       {!haveOrder ? (
         status ? (
