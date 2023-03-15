@@ -12,15 +12,15 @@ import firebase from 'firebase/compat';
 
 import axiosClient from '../../api/axiosClient';
 import { AuthContext } from '../../context/AuthContext';
-import { LoginSuccess, LoginStart, LoginFailure } from '../../context/AuthAction';
+import { LoginSuccess, SetListOrder, SetLocation } from '../../context/AuthAction';
+import { getLocationCurrentOfUser } from '../../global/ultilLocation';
 
 const widthScreen = Dimensions.get('window').width;
 const heightScreen = Dimensions.get('window').height;
 export default function Login({ navigation }) {
-
-  const autoTrue=true;
-  const dataTest="0359434729"
-  const dataTest2="123456"
+  const autoTrue = true;
+  const dataTest = '0359434729';
+  const dataTest2 = '123456';
   const [screen, setScreen] = useState(1);
   const [validData, setValidData] = useState(true);
   const [phone, setPhone] = useState(dataTest);
@@ -37,7 +37,12 @@ export default function Login({ navigation }) {
   const sendVerification = async () => {
     //Login fast
     const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + phone);
+    const orderList = await axiosClient.get('gotruck/ordershipper/shipper/' + userLogin._id);
+    const currentLocation = await getLocationCurrentOfUser();
+    
     dispatch(LoginSuccess(userLogin));
+    dispatch(SetLocation(currentLocation));
+    dispatch(SetListOrder(orderList));
     toMainScreen();
 
     // try {
@@ -62,7 +67,7 @@ export default function Login({ navigation }) {
     //         'Tài khoản đang trong quá trình xác thực.\nVui lòng thử lại sau!',
     //         null,
     //       );
-        // }
+    // }
     //   }
     // } catch (error) {
     //   console.log(error);
@@ -104,7 +109,7 @@ export default function Login({ navigation }) {
     setScreen((prev) => prev + 1);
   };
   const toMainScreen = () => {
-    setScreen(1)
+    setScreen(1);
     navigation.navigate('MainScreen');
   };
   //----------Back Button----------

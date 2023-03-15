@@ -116,7 +116,8 @@ export default function ReceiveGoods({ navigation }) {
             )}
           </ScrollView>
           <View style={{ alignItems: 'center' }}>
-            {listImages.length > 0 ? (
+            {/* {listImages.length > 0 ? ( */}
+            {listImages.length == 0 ? (
               <MyButton
                 type={'large'}
                 btnColor={stylesGlobal.mainGreen}

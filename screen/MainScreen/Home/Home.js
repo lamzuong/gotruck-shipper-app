@@ -1,34 +1,43 @@
-import styles from './stylesHome';
 import stylesGlobal from '../../../global/stylesGlobal';
 import NewOrderDetail from './NewOrderDetail/NewOrderDetail';
+import styles from './stylesHome';
 
 import {
-  View,
-  Text,
-  StatusBar,
-  TouchableOpacity,
+  AntDesign,
+  Entypo,
+  FontAwesome,
+  FontAwesome5,
+  Ionicons,
+  MaterialIcons,
+} from '@expo/vector-icons';
+import { Collapse, CollapseBody, CollapseHeader } from 'accordion-collapse-react-native';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import {
+  Alert,
+  Dimensions,
   Pressable,
   ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
   TouchableWithoutFeedback,
-  Dimensions,
-  Alert,
+  View,
 } from 'react-native';
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import { AntDesign, Entypo, FontAwesome5, FontAwesome, Ionicons } from '@expo/vector-icons';
-import { MaterialIcons } from '@expo/vector-icons';
+import MapView, { Marker, PROVIDER_GOOGLE, Polyline } from 'react-native-maps';
 import ReadMore from 'react-native-read-more-text';
-import { Collapse, CollapseHeader, CollapseBody } from 'accordion-collapse-react-native';
 import SwipeUpDown from 'react-native-swipe-up-down';
-import MapView, { LatLng, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import MapViewDirections from 'react-native-maps-directions';
-import { GOOGLE_API_KEY } from '../../../global/keyGG';
 import { AuthContext } from '../../../context/AuthContext';
 
-import { socketClient } from '../../../global/socket';
 import axiosClient from '../../../api/axiosClient';
-import { getLocationCurrentOfUser, getDistanceTwoLocation } from '../../../global/ultilLocation';
-import MyInput from '../../../components/MyInput/MyInput';
 import MyButton from '../../../components/MyButton/MyButton';
+import MyInput from '../../../components/MyInput/MyInput';
+import { socketClient } from '../../../global/socket';
+import {
+  getLocationCurrentOfUser,
+  getPoLylineFromEncode,
+  getRouteTwoLocation,
+} from '../../../global/ultilLocation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Home({ navigation, route }) {
   const { dispath, user, locationNow } = useContext(AuthContext);
@@ -49,6 +58,7 @@ export default function Home({ navigation, route }) {
   const [showModal, setShowModal] = useState(false);
   const [valid, setValid] = useState(false);
   const [reason, setReason] = useState('');
+  const [routePolyline, setRoutePolyline] = useState([]);
 
   const stopZoomRef = useRef(false);
   const mapRef = useRef();
@@ -83,19 +93,10 @@ export default function Home({ navigation, route }) {
     left: edgePaddingValue,
   };
 
-  const zoomMap = (typeZoom) => {
-    console.log('zom');
-    if (typeZoom === 'from' && orderItem) {
-      console.log(1);
-      mapRef.current?.fitToCoordinates([locationShipper, orderItem?.from_address], {
-        edgePadding,
-      });
-    } else if (typeZoom === 'to' && orderItem) {
-      mapRef.current?.fitToCoordinates([locationShipper, orderItem?.to_address], {
-        edgePadding,
-      });
-      console.log(2);
-    }
+  const zoomMap = (addressTo) => {
+    mapRef.current?.fitToCoordinates([locationShipper, addressTo], {
+      edgePadding,
+    });
   };
   const getTruckDefault = () => {
     const truckDefault = user.infoAllTruck.find((tr) => tr.default === true);
@@ -109,12 +110,13 @@ export default function Home({ navigation, route }) {
   const onSocketReceiveOrder = () => {
     socketClient.off(getTruckDefault());
     socketClient.on(getTruckDefault(), async (data) => {
-      console.log(locationShipper.address);
-      const distanceTwoLocation = await getDistanceTwoLocation(locationShipper, data.from_address);
+      const resultRoute = await getRouteTwoLocation(locationShipper, data.from_address);
+      const distanceTwoLocation = resultRoute?.result?.routes[0]?.distance?.value || -1;
+      console.log(distanceTwoLocation);
       const distanceReceiveOrder = await axiosClient.get('gotruck/ordershipper/distancereceive');
       if (
         distanceTwoLocation >= 0 &&
-        distanceTwoLocation <= distanceReceiveOrder.distance_receive_order
+        distanceTwoLocation <= 10000000 // distanceReceiveOrder.distance_receive_order
       ) {
         setListOrderNotify((prev) => {
           return [...prev, data];
@@ -125,6 +127,20 @@ export default function Home({ navigation, route }) {
         console.log('Đơn hàng quá xa');
       }
     });
+  };
+  const handleDirection = async (addressTo) => {
+    const resultRoute = await getRouteTwoLocation(locationShipper, addressTo);
+    let routePolyTemp = [];
+    if (resultRoute) {
+      const listPoly = getPoLylineFromEncode(resultRoute?.result.routes[0].overviewPolyline);
+      listPoly?.forEach((el) => {
+        routePolyTemp.push({ latitude: el.lat, longitude: el.lng });
+      });
+      setRoutePolyline(routePolyTemp);
+      setTimeout(() => {
+        zoomMap(addressTo);
+      }, 1000);
+    }
   };
 
   useEffect(() => {
@@ -161,6 +177,8 @@ export default function Home({ navigation, route }) {
             socketClient.off(getTruckDefault() + 'cancel');
             setOrderItem((prev) => route.params.itemOrder);
             setHaveOrder(true);
+            handleDirection(res.from_address);
+            await AsyncStorage.setItem('idOrderCurrent', res.id_order);
             socketClient.emit('shipper_receive', res);
           } else if (res.status == 'Đã hủy' && res.reason_cancel.user_cancel === 'AutoDelete') {
             Alert.alert('Thông báo', 'Đơn hàng đã quá hạn');
@@ -174,6 +192,7 @@ export default function Home({ navigation, route }) {
         stopZoomRef.current = false;
         setHeightSwip(120);
         setReceived(true);
+        handleDirection(orderItem.to_address);
       } else if (route.params.completed) {
         setHaveOrder(false);
         setReceived(false);
@@ -181,6 +200,9 @@ export default function Home({ navigation, route }) {
         setListOrderNotify([]);
         onSocketReceiveOrder();
         onSocketCancel();
+        (async function () {
+          await AsyncStorage.clear();
+        }.call(this));
         stopZoomRef.current = false;
       } else {
         console.log('err Home' + route.params);
@@ -210,10 +232,9 @@ export default function Home({ navigation, route }) {
       setListOrderNotify([]);
       setHaveOrder(false);
       onSocketReceiveOrder();
+      await AsyncStorage.clear();
     });
   }, []);
-
- 
 
   const onSocketCancel = () => {
     socketClient.off(getTruckDefault() + 'cancel');
@@ -265,26 +286,43 @@ export default function Home({ navigation, route }) {
       setListOrderNotify([]);
       setHaveOrder(false);
       onSocketReceiveOrder();
+      await AsyncStorage.clear();
     }
   };
 
-
-
   useEffect(() => {
-    console.log('Start');
-    const timeId = setInterval(async () => {
-      console.log('10s');
-      const location = await getLocationCurrentOfUser();
-      socketClient.emit('location_shipper', {
-        id_order: orderItem?.id_order || "",
-        locationShipper: location,
-      });
-      setLocationShipper(location);
-    }, 10000);
-    return () => {
-      clearInterval(timeId);
-    };
-  }, []);
+    (async function () {
+      const idOrderCurrent = await AsyncStorage.getItem('idOrderCurrent');
+      if (haveOrder && idOrderCurrent) {
+        const resultRoute = await getRouteTwoLocation(locationShipper,orderItem.to_address);
+        let routePolyTemp = [];
+        if (resultRoute) {
+          const listPoly = getPoLylineFromEncode(resultRoute?.result.routes[0].overviewPolyline);
+          listPoly?.forEach((el) => {
+            routePolyTemp.push({ latitude: el.lat, longitude: el.lng });
+          });
+          setRoutePolyline(routePolyTemp);
+        }
+      }
+    }.call(this));
+  }, [locationShipper]);
+
+  // useEffect(() => {
+  //   console.log('Start');
+  //   const timeId = setInterval(async () => {
+  //     console.log('10s');
+  //     const location = await getLocationCurrentOfUser();
+  //     const idOrderCurrent = await AsyncStorage.getItem('idOrderCurrent');
+  //     socketClient.emit('location_shipper', {
+  //       id_order: idOrderCurrent || '',
+  //       locationShipper: location,
+  //     });
+  //     setLocationShipper(location);
+  //   }, 10000);
+  //   return () => {
+  //     clearInterval(timeId);
+  //   };
+  // }, []);
 
   return (
     <View style={styles.container}>
@@ -294,44 +332,18 @@ export default function Home({ navigation, route }) {
         style={styles.map}
         provider={PROVIDER_GOOGLE}
         initialRegion={INITIAL_POSITION}
-        // showsUserLocation={true}
-        // showsMyLocationButton={true}
         zoomEnabled={true}
         addressForCoordinate={(e) => {
           console.log(e);
         }}
       >
         {haveOrder && (
-          <MapViewDirections
-            origin={locationShipper}
-            destination={received ? orderItem.to_address : orderItem.from_address}
-            apikey={GOOGLE_API_KEY}
-            strokeColor="rgb(0,176,255)"
-            strokeWidth={4}
-            mode="DRIVING"
-            onReady={() => {
-              if (stopZoomRef.current === false) {
-                if (received) {
-                  zoomMap('from');
-                } else {
-                  zoomMap('to');
-                }
-                stopZoomRef.current = true;
-              }
-            }}
-            onError={(e) => {
-              console.log(e);
-              Alert.alert(
-                'Thông báo',
-                'Không tìm thấy đường đi tới nơi lấy hàng\nĐơn hàng sẽ bị hủy',
-              );
-            }}
-          />
+          <Polyline coordinates={routePolyline} strokeColor="rgb(0,176,255)" strokeWidth={8} />
         )}
         {haveOrder &&
           (received ? (
             <Marker
-              coordinate={orderItem.to_address}
+              coordinate={orderItem?.to_address}
               onPress={() => {
                 setshowDetail(!showDetail);
               }}

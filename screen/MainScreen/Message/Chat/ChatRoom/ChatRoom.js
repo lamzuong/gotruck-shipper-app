@@ -1,5 +1,5 @@
-import styles from "./stylesChatRoom";
-import stylesGlobal from "../../../../../global/stylesGlobal";
+import styles from './stylesChatRoom';
+import stylesGlobal from '../../../../../global/stylesGlobal';
 
 import {
   View,
@@ -8,103 +8,142 @@ import {
   Image,
   TextInput,
   BackHandler,
-} from "react-native";
-import React, { useEffect } from "react";
-import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+  Linking,
+  Keyboard,
+} from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { Ionicons, Feather } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import axiosClient from '../../../../../api/axiosClient';
+import { socketClient } from '../../../../../global/socket';
+import { AuthContext } from '../../../../../context/AuthContext';
 
 export default function ChatRoom({ route }) {
+  const { item } = route.params;
+  const navigation = useNavigation();
+
+  const [mess, setMess] = useState();
+  const [listMessage, setListMessage] = useState([]);
+  const { user } = useContext(AuthContext);
+
+  const handleCallPhone = () => {
+    if (item?.id_customer?.phone) {
+      Linking.openURL(`tel:${item.id_customer.phone}`);
+    } else {
+      alert('Không thể gọi cho số điện thoại này');
+    }
+  };
+
+  const handleMessage = async () => {
+    const messageSend = {
+      id_conversation: item._id,
+      message: mess.trim(),
+      id_sender: user._id,
+      userSendModel: 'Shipper',
+    };
+    if (mess.trim()) {
+      await axiosClient.post('gotruck/conversation/message/', {
+        ...messageSend,
+      });
+      socketClient.emit('send_message', { id_receive: item.id_customer._id });
+      getAllMessage();
+    }
+    setMess('');
+    Keyboard.dismiss();
+  };
+
+  const getAllMessage = async () => {
+    const listMess = await axiosClient.get('gotruck/conversation/message/' + item._id);
+    listMess.reverse();
+    setListMessage(listMess);
+  };
+
+  function timeSince(date) {
+    let seconds = Math.floor((new Date() - date) / 1000);
+    let interval = seconds / 31536000;
+    if (interval > 1) {
+      return Math.floor(interval) + ' năm trước';
+    }
+    interval = seconds / 2592000;
+    if (interval > 1) {
+      return Math.floor(interval) + ' tháng trước';
+    }
+    interval = seconds / 86400;
+    if (interval > 1) {
+      return Math.floor(interval) + ' ngày trước';
+    }
+    interval = seconds / 3600;
+    if (interval > 1) {
+      return Math.floor(interval) + ' giờ trước';
+    }
+    interval = seconds / 60;
+    if (interval > 1) {
+      return Math.floor(interval) + ' phút trước';
+    }
+    return 'Vừa gửi';
+  }
+
   //----------Back Button----------
   useEffect(() => {
     const backAction = () => {
       navigation.goBack();
       return true;
     };
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction
-    );
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
     return () => backHandler.remove();
   }, []);
   //------------------------------
-  const { item } = route.params;
-  const navigation = useNavigation();
-  const id = 2;
-  const exMess = [
-    {
-      id: 1,
-      avatar:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTIao-KaLLXnLaeTnqXgGBFSAzBgeQgr0g1uA&usqp=CAU",
-      content:
-        "Chào anh, có phải anh đặt GoTruck giao hàng tới đường Nguyễn Văn Bảo không ạ?",
-      idSender: 2,
-      time: "10 phút trước",
-    },
-    {
-      id: 2,
-      avatar:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTIao-KaLLXnLaeTnqXgGBFSAzBgeQgr0g1uA&usqp=CAU",
-      content: "Đúng rồi",
-      idSender: 1,
-      time: "10 phút trước",
-    },
-    {
-      id: 3,
-      avatar:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTIao-KaLLXnLaeTnqXgGBFSAzBgeQgr0g1uA&usqp=CAU",
-      content: "Ok anh",
-      idSender: 2,
-      time: "3 phút trước",
-    },
-  ];
+
+  useEffect(() => {
+    getAllMessage();
+    socketClient.off(user._id + 'message');
+    socketClient.on(user._id + 'message', (data) => {
+      getAllMessage();
+    });
+  }, []);
+
   return (
     <>
       <View style={styles.header}>
-        <Ionicons
-          name="arrow-back"
-          size={24}
-          color="white"
-          onPress={() => navigation.goBack()}
-        />
-        <Text style={styles.header.txtHeader}>{item.name}</Text>
-        <View style={{ width: 24 }}></View>
+        <Ionicons name="arrow-back" size={24} color="white" onPress={() => navigation.goBack()} />
+        <Text style={styles.header.txtHeader}>{item.id_customer.name}</Text>
+        <Feather name="phone" size={24} color="white" onPress={() => handleCallPhone()} />
       </View>
       <View style={styles.container}>
         <FlatList
-          data={exMess}
+          data={listMessage}
+          inverted={true}
+          showsVerticalScrollIndicator={false}
           renderItem={({ item, index }) => {
             return (
               <>
+                {item.userSendModel == 'Shipper' ? (
+                  <Text style={styles.time.owner}>{timeSince(new Date(item.createdAt))}</Text>
+                ) : (
+                  <Text style={styles.time.shipper}>{timeSince(new Date(item.createdAt))}</Text>
+                )}
                 <View
                   style={
-                    item.idSender == id
-                      ? [styles.itemChat, { justifyContent: "flex-end" }]
+                    item.userSendModel == 'Shipper'
+                      ? [styles.itemChat, { justifyContent: 'flex-end' }]
                       : styles.itemChat
                   }
                 >
-                  {item.idSender == id ? null : (
-                    <Image
-                      source={{ uri: item.avatar }}
-                      style={styles.avatar}
-                    />
+                  {item.userSendModel == 'Shipper' ? null : (
+                    <Image source={{ uri: item.id_sender.avatar }} style={styles.avatar} />
                   )}
-                  {item.idSender == id ? (
+                  {item.userSendModel == 'Shipper' ? (
                     <>
                       <View style={styles.view.owner}>
-                        <Text style={styles.text.owner}>{item.content}</Text>
+                        <Text style={styles.text.owner}>{item.message}</Text>
                       </View>
                     </>
                   ) : (
                     <View style={styles.view.shipper}>
-                      <Text style={styles.text.shipper}>{item.content}</Text>
+                      <Text style={styles.text.shipper}>{item.message}</Text>
                     </View>
                   )}
                 </View>
-                {item.idSender == id ? (
-                  <Text style={styles.time.owner}>{item.time}</Text>
-                ) : (
-                  <Text style={styles.time.shipper}>{item.time}</Text>
-                )}
               </>
             );
           }}
@@ -113,6 +152,8 @@ export default function ChatRoom({ route }) {
         <View style={styles.viewInput}>
           <View style={styles.input}>
             <TextInput
+              value={mess}
+              onChangeText={(t) => setMess(t)}
               style={styles.txtInput}
               placeholder="Nhập tin nhắn..."
               numberOfLines={99}
@@ -123,6 +164,7 @@ export default function ChatRoom({ route }) {
             size={30}
             color={stylesGlobal.mainGreen}
             style={styles.iconSend}
+            onPress={() => handleMessage()}
           />
         </View>
       </View>

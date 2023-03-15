@@ -3,17 +3,33 @@ import stylesGlobal from '../../../../global/stylesGlobal';
 import MyButton from '../../../../components/MyButton/MyButton';
 import ButtonAdd from '../../../../components/ButtonAdd/ButtonAdd';
 
-import { View, Text, ScrollView, TouchableWithoutFeedback, Alert } from 'react-native';
-import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableWithoutFeedback, Alert, Linking } from 'react-native';
+import React, { useContext, useState } from 'react';
 import { Feather, Foundation, Ionicons, SimpleLineIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { getDistanceTwoLocation } from '../../../../global/ultilLocation';
+import { getRouteTwoLocation } from '../../../../global/ultilLocation';
+import axiosClient from '../../../../api/axiosClient';
+import { AuthContext } from '../../../../context/AuthContext';
+import { socketClient } from '../../../../global/socket';
 
 export default function NewOrderDetail({ setShowModal, item, show, received, locationShipper }) {
+  const { user } = useContext(AuthContext);
   const navigation = useNavigation();
+
+  const handleMessage = async () => {
+    const resConversation = await axiosClient.post('gotruck/conversation/', {
+      id_customer: item.id_customer,
+      id_shipper: user._id,
+    });
+    socketClient.emit('send_message', { id_receive: item.id_customer });
+    navigation.navigate('ChatRoom', { item: resConversation });
+  };
+
   const handleShippedGoods = async () => {
-    const distanceTwoLocation = await getDistanceTwoLocation(locationShipper, item.to_address);
-    if (distanceTwoLocation > 1000) {
+    const resultRoute = await getRouteTwoLocation(locationShipper, item.to_address);
+    const distanceTwoLocation = resultRoute?.result?.routes[0]?.distance?.value || -1;
+
+    if (distanceTwoLocation && distanceTwoLocation > 1000) {
       Alert.alert(
         'Xác nhận',
         'Vị trí của bạn khác vị trí giao hàng!\nChúng tôi sẽ ghi nhận và thông báo cho khách hàng nếu bạn tiếp tục',
@@ -26,9 +42,8 @@ export default function NewOrderDetail({ setShowModal, item, show, received, loc
           { text: 'OK', onPress: () => navigation.navigate('ShippedGoods', { item: item }) },
         ],
       );
-    }
-    else{
-      navigation.navigate('ShippedGoods', { item: item })
+    } else {
+      navigation.navigate('ShippedGoods', { item: item });
     }
   };
   return (
@@ -44,9 +59,23 @@ export default function NewOrderDetail({ setShowModal, item, show, received, loc
             <Text style={styles.label}>Người gửi</Text>
           </View>
           <View style={styles.inline}>
-            <Feather name="message-square" size={26} color="black" />
+            <Feather
+              name="message-square"
+              size={26}
+              color="black"
+              onPress={() => {
+                handleMessage();
+              }}
+            />
             <View style={{ width: 10 }}></View>
-            <Feather name="phone" size={26} color="black" />
+            <Feather
+              name="phone"
+              size={26}
+              color="black"
+              onPress={() => {
+                Linking.openURL(`tel:${item.to_address.phone}`);
+              }}
+            />
           </View>
         </View>
         <Text style={styles.content}>
@@ -62,9 +91,23 @@ export default function NewOrderDetail({ setShowModal, item, show, received, loc
             <Text style={styles.label}>Người nhận</Text>
           </View>
           <View style={styles.inline}>
-            <Feather name="message-square" size={26} color="black" />
+            <Feather
+              name="message-square"
+              size={26}
+              color="black"
+              onPress={() => {
+                handleMessage();
+              }}
+            />
             <View style={{ width: 10 }}></View>
-            <Feather name="phone" size={26} color="black" />
+            <Feather
+              name="phone"
+              size={26}
+              color="black"
+              onPress={() => {
+                Linking.openURL(`tel:${item.to_address.phone}`);
+              }}
+            />
           </View>
         </View>
         <Text style={styles.content}>

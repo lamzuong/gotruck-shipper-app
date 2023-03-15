@@ -13,7 +13,7 @@ export default function MyOrder({ order }) {
     <View style={styles.order}>
       <View style={styles.inline}>
         <Text style={[styles.label, styles.label.short]}>Mã đơn</Text>
-        <Text style={styles.content}>{order.id}</Text>
+        <Text style={styles.content}>{order.id_order}</Text>
       </View>
       <View style={styles.inline}>
         <Text style={[styles.label, styles.label.short]}>Từ</Text>
@@ -22,7 +22,7 @@ export default function MyOrder({ order }) {
           renderTruncatedFooter={() => null}
           renderRevealedFooter={() => null}
         >
-          <Text style={styles.content}>{order.from}</Text>
+          <Text style={styles.content}>{order.from_address.address}</Text>
         </ReadMore>
       </View>
       <View style={styles.inline}>
@@ -32,7 +32,7 @@ export default function MyOrder({ order }) {
           renderTruncatedFooter={() => null}
           renderRevealedFooter={() => null}
         >
-          <Text style={styles.content}>{order.to}</Text>
+          <Text style={styles.content}>{order.to_address.address}</Text>
         </ReadMore>
       </View>
       <View style={styles.inline}>
@@ -42,7 +42,7 @@ export default function MyOrder({ order }) {
           renderTruncatedFooter={() => null}
           renderRevealedFooter={() => null}
         >
-          <Text style={styles.content}>{order.note}</Text>
+          <Text style={styles.content}>{order.note || "Không có"}</Text>
         </ReadMore>
       </View>
       <View style={styles.inline}>
@@ -52,7 +52,7 @@ export default function MyOrder({ order }) {
           renderTruncatedFooter={() => null}
           renderRevealedFooter={() => null}
         >
-          <Text style={styles.content}>{order.peopleReceive}</Text>
+          <Text style={styles.content}>{order.to_address.name}</Text>
         </ReadMore>
       </View>
       <View style={styles.inline}>
@@ -62,7 +62,7 @@ export default function MyOrder({ order }) {
           renderTruncatedFooter={() => null}
           renderRevealedFooter={() => null}
         >
-          <Text style={styles.content}>{order.phoneReceive}</Text>
+          <Text style={styles.content}>{order.to_address.phone}</Text>
         </ReadMore>
       </View>
       <View style={styles.inlineBetween}>

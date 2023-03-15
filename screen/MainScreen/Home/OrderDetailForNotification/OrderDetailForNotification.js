@@ -3,15 +3,27 @@ import stylesGlobal from '../../../../global/stylesGlobal';
 import MyButton from '../../../../components/MyButton/MyButton';
 import ButtonAdd from '../../../../components/ButtonAdd/ButtonAdd';
 
-import { View, Text, ScrollView, TouchableWithoutFeedback, Alert } from 'react-native';
-import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableWithoutFeedback, Alert, Linking } from 'react-native';
+import React, { useContext, useState } from 'react';
 import { Feather, Foundation, Ionicons, SimpleLineIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-
+import axiosClient from '../../../../api/axiosClient';
+import { AuthContext } from '../../../../context/AuthContext';
 export default function OrderDetailForNotification() {
+  const { user } = useContext(AuthContext);
   const route = useRoute();
   const { item } = route.params;
   const navigation = useNavigation();
+
+  const handleMessage = async () => {
+    const resConversation = await axiosClient.post('gotruck/conversation/', {
+      id_customer: item.id_customer,
+      id_shipper: user._id,
+    });
+    socketClient.emit('send_message', { id_receive: item.id_customer });
+    navigation.navigate('ChatRoom', { item: resConversation });
+  };
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={{ paddingHorizontal: 20 }}>
@@ -25,9 +37,23 @@ export default function OrderDetailForNotification() {
             <Text style={styles.label}>Người gửi</Text>
           </View>
           <View style={styles.inline}>
-            <Feather name="message-square" size={26} color="black" />
+            <Feather
+              name="message-square"
+              size={26}
+              color="black"
+              onPress={() => {
+                handleMessage();
+              }}
+            />
             <View style={{ width: 10 }}></View>
-            <Feather name="phone" size={26} color="black" />
+            <Feather
+              name="phone"
+              size={26}
+              color="black"
+              onPress={() => {
+                Linking.openURL(`tel:${item.from_address.phone}`);
+              }}
+            />
           </View>
         </View>
         <Text style={styles.content}>
@@ -43,9 +69,23 @@ export default function OrderDetailForNotification() {
             <Text style={styles.label}>Người nhận</Text>
           </View>
           <View style={styles.inline}>
-            {/* <Feather name="message-square" size={26} color="black" /> */}
+            <Feather
+              name="message-square"
+              size={26}
+              color="black"
+              onPress={() => {
+                handleMessage();
+              }}
+            />
             <View style={{ width: 10 }}></View>
-            <Feather name="phone" size={26} color="black" />
+            <Feather
+              name="phone"
+              size={26}
+              color="black"
+              onPress={() => {
+                Linking.openURL(`tel:${item.to_address.phone}`);
+              }}
+            />
           </View>
         </View>
         <Text style={styles.content}>
