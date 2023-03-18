@@ -112,7 +112,6 @@ export default function Home({ navigation, route }) {
     socketClient.on(getTruckDefault(), async (data) => {
       const resultRoute = await getRouteTwoLocation(locationShipper, data.from_address);
       const distanceTwoLocation = resultRoute?.result?.routes[0]?.distance?.value || -1;
-      console.log(distanceTwoLocation);
       const distanceReceiveOrder = await axiosClient.get('gotruck/ordershipper/distancereceive');
       if (
         distanceTwoLocation >= 0 &&
@@ -122,9 +121,7 @@ export default function Home({ navigation, route }) {
           return [...prev, data];
         });
       } else if (distanceTwoLocation < 0) {
-        console.log('Không có đường tới nơi nhận hàng');
       } else {
-        console.log('Đơn hàng quá xa');
       }
     });
   };
@@ -205,7 +202,6 @@ export default function Home({ navigation, route }) {
         }.call(this));
         stopZoomRef.current = false;
       } else {
-        console.log('err Home' + route.params);
       }
     }
   }, [route]);
@@ -308,9 +304,7 @@ export default function Home({ navigation, route }) {
   }, [locationShipper]);
 
   // useEffect(() => {
-  //   console.log('Start');
   //   const timeId = setInterval(async () => {
-  //     console.log('10s');
   //     const location = await getLocationCurrentOfUser();
   //     const idOrderCurrent = await AsyncStorage.getItem('idOrderCurrent');
   //     socketClient.emit('location_shipper', {
@@ -334,7 +328,6 @@ export default function Home({ navigation, route }) {
         initialRegion={INITIAL_POSITION}
         zoomEnabled={true}
         addressForCoordinate={(e) => {
-          console.log(e);
         }}
       >
         {haveOrder && (

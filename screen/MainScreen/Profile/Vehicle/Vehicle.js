@@ -13,9 +13,56 @@ import {
 } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { AntDesign, MaterialIcons, Feather } from '@expo/vector-icons';
-import {axiosClient} from "../../../../api/axiosClient"
+import axiosClient from '../../../../api/axiosClient';
 import { AuthContext } from '../../../../context/AuthContext';
+import { LoginSuccess } from '../../../../context/AuthAction';
+
 export default function Vehicle({ navigation }) {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [item, setItem] = useState({});
+  const { user, dispatch } = useContext(AuthContext);
+
+  const truck = user.infoAllTruck;
+  if (truck) {
+    truck.sort((a, b) => a.status < b.status);
+    truck.sort((a, b) => a.default === false);
+  }
+
+  const handleSetDefault = async () => {
+    const res = await axiosClient.put('gotruck/profileshipper/vehicle', {
+      id_shipper: user._id,
+      name: item.name,
+    });
+    const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + user.phone);
+    dispatch(LoginSuccess(userLogin));
+    setModalVisible(false);
+  };
+
+  const deleteVehicle = () => {
+    setModalVisible(!modalVisible);
+    return Alert.alert('Cảnh báo', 'Bạn có chắc muốn xóa phương tiện này không?', [
+      {
+        text: 'Hủy',
+        onPress: () => null,
+        style: 'cancel',
+      },
+      {
+        text: 'OK',
+        onPress: async () => {
+          const res = await axiosClient.put('gotruck/profileshipper/vehicle/delete', {
+            id_shipper: user._id,
+            name: item.name,
+            license_plate: item.license_plate,
+          });
+
+          const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + user.phone);
+          dispatch(LoginSuccess(userLogin));
+          setModalVisible(false);
+        },
+      },
+    ]);
+  };
+
   //----------Back Button----------
   useEffect(() => {
     const backAction = () => {
@@ -26,29 +73,6 @@ export default function Vehicle({ navigation }) {
     return () => backHandler.remove();
   }, []);
   //------------------------------
-
-  const {user} = useContext(AuthContext);
-
-  const [modalVisible, setModalVisible] = useState(false);
-  const [item, setItem] = useState({});
-  const [truck, setTruck] = useState(user.infoAllTruck || []);
-
-
-  const editVehicle = () => {
-    setModalVisible(!modalVisible);
-    navigation.navigate('FormVehicle', { item: item });
-  };
-  const deleteVehicle = () => {
-    setModalVisible(!modalVisible);
-    return Alert.alert('Cảnh báo', 'Bạn có chắc muốn xóa phương tiện này không?', [
-      {
-        text: 'Cancel',
-        onPress: () => console.log('Cancel Pressed'),
-        style: 'cancel',
-      },
-      { text: 'OK', onPress: () => console.log(item.nameTruck) },
-    ]);
-  };
 
   return (
     <ScrollView style={styles.container}>
@@ -63,14 +87,17 @@ export default function Vehicle({ navigation }) {
         <TouchableWithoutFeedback onPress={() => setModalVisible(!modalVisible)}>
           <View style={styles.modalView}>
             <View style={styles.viewOptions}>
-              <TouchableOpacity style={styles.option} onPress={() => {}}>
-                <Feather name="check" size={24} color="black" />
-                <Text style={styles.titleOption}>{'\t\t'}Chọn làm mặc định</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.option} onPress={editVehicle}>
-                <AntDesign name="edit" size={24} color="black" />
-                <Text style={styles.titleOption}>{'\t\t'}Sửa thông tin</Text>
-              </TouchableOpacity>
+              {item.status !== 'Chưa duyệt' && item.default !== true && (
+                <TouchableOpacity
+                  style={styles.option}
+                  onPress={() => {
+                    handleSetDefault();
+                  }}
+                >
+                  <Feather name="check" size={24} color="black" />
+                  <Text style={styles.titleOption}>{'\t\t'}Chọn làm mặc định</Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity style={styles.option} onPress={deleteVehicle}>
                 <MaterialIcons name="delete-outline" size={24} color="black" />
                 <Text style={styles.titleOption}>{'\t\t'}Xóa phương tiện</Text>
@@ -84,11 +111,20 @@ export default function Vehicle({ navigation }) {
           style={styles.itemTruck}
           key={i}
           onPress={() => {
-            setModalVisible(!modalVisible);
+            if (e.default !== true) {
+              setModalVisible(!modalVisible);
+            }
             setItem(e);
           }}
         >
-          <Text style={styles.nameTruck}>{e.name}</Text>
+          <View style={styles.nameAndStatus}>
+            <Text style={styles.nameTruck}>{e.name}</Text>
+            {e.status === 'Đã duyệt' ? (
+              <Text style={styles.status2}>Đã xác minh</Text>
+            ) : (
+              <Text style={styles.statusPending}>Đang xác minh</Text>
+            )}
+          </View>
           <Text>{e.license_plate}</Text>
           {e.default ? (
             <Text style={styles.defaultTruck}>

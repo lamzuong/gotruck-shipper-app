@@ -39,7 +39,6 @@ export default function Login({ navigation }) {
     const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + phone);
     const orderList = await axiosClient.get('gotruck/ordershipper/shipper/' + userLogin._id);
     const currentLocation = await getLocationCurrentOfUser();
-    
     dispatch(LoginSuccess(userLogin));
     dispatch(SetLocation(currentLocation));
     dispatch(SetListOrder(orderList));
@@ -59,7 +58,6 @@ export default function Login({ navigation }) {
     //           nextScreen();
     //         })
     //         .catch((error) => {
-    //           console.log(error);
     //         });
     //     } else {
     //       customAlert(
@@ -70,7 +68,6 @@ export default function Login({ navigation }) {
     // }
     //   }
     // } catch (error) {
-    //   console.log(error);
     //   customAlert('Thông báo', 'Lỗi không xác định', null);
     // }
   };
@@ -87,7 +84,6 @@ export default function Login({ navigation }) {
           toMainScreen();
         })
         .catch((err) => {
-          console.log(err);
           Alert.alert('Thông báo', 'Mã OTP không chính xác');
         });
     }

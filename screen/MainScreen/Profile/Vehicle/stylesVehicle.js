@@ -44,6 +44,21 @@ const styles = StyleSheet.create({
   titleOption: {
     fontSize: 18,
   },
+  nameAndStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  status: {
+    paddingLeft: 15,
+  },
+  status2: {
+    paddingLeft: 10,
+    color: '#04AF46',
+  },
+  statusPending:{
+    paddingLeft: 10,
+    color:"red"
+  }
 });
 
 export default styles;

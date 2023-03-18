@@ -2,10 +2,14 @@ import styles from './stylesProfile';
 import options from './optionsProfile';
 
 import { View, Text, Image, TouchableOpacity, FlatList, Alert } from 'react-native';
-import React from 'react';
+import React, { useContext } from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
+import { AuthContext } from '../../../context/AuthContext';
 
 export default function Profile({ navigation }) {
+  const {user} = useContext(AuthContext);
+
+
   const confirmRequest = (screen) => {
     Alert.alert('Xác nhận', 'Bạn có muốn đăng xuất khỏi ứng dụng ?', [
       {
@@ -21,12 +25,12 @@ export default function Profile({ navigation }) {
       <View style={styles.viewAccount}>
         <Image
           source={{
-            uri: 'https://res.cloudinary.com/dicpaduof/image/upload/v1675151266/GoTruck/user-no-avatar_qvvoes.png',
+            uri: user.avatar,
           }}
           style={styles.viewAccount.avatar}
         />
         <View style={{ marginLeft: 20 }}>
-          <Text style={styles.viewAccount.name}>Lê Văn Tài</Text>
+          <Text style={styles.viewAccount.name}>{user.name}</Text>
           <TouchableOpacity
             style={{ flexDirection: 'row' }}
             onPress={() => {

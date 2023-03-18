@@ -12,6 +12,10 @@ const styles = StyleSheet.create({
   viewInput: {
     marginBottom: 15,
   },
+  viewInputImage: {
+    marginBottom: 15,
+    minHeight: 200,
+  },
   itemImage: {
     width: 100,
     height: 100,

@@ -6,29 +6,115 @@ import MyButton from '../../../../../components/MyButton/MyButton';
 import ButtonAdd from '../../../../../components/ButtonAdd/ButtonAdd';
 
 import { View, Text, ScrollView, Image } from 'react-native';
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import AnimatedLoader from 'react-native-animated-loader';
+import * as ImagePicker from 'expo-image-picker';
+import firebase from 'firebase/compat';
+import uuid from 'react-native-uuid';
+import DropDownPicker from 'react-native-dropdown-picker';
+import axiosClient from '../../../../../api/axiosClient';
+import { AuthContext } from '../../../../../context/AuthContext';
+import { LoginSuccess } from '../../../../../context/AuthAction';
 
 export default function FormVehicle() {
-  const navigation = useNavigation();
-  const route = useRoute();
-  const { item } = route.params;
+  const [openTruck, setOpenTruck] = useState(false);
+  const [valueTruck, setValueTruck] = useState('');
+  const [itemsTruck, setItemsTruck] = useState([]);
 
-  const [nameTruck, setNameTruck] = useState('');
-  const [numberTruck, setNumberTruck] = useState('');
-  const [brandTruck, setBrandTruck] = useState('');
-  const [imagesTruck, setImagesTruck] = useState([
-    'https://hosonhanvat.net/wp-content/uploads/2020/07/chopper-2.jpg',
-    'https://hosonhanvat.net/wp-content/uploads/2020/07/chopper-2.jpg',
-    'https://ecdn.game4v.com/g4v-content/uploads/2020/05/Khoanh-khac-vi-dai-cua-Luffy-0-game4v.png',
-    'https://hosonhanvat.net/wp-content/uploads/2020/07/chopper-2.jpg',
-  ]);
-  const [imagesPapers, setImagesPapers] = useState([
-    'https://hosonhanvat.net/wp-content/uploads/2020/07/chopper-2.jpg',
-    'https://hosonhanvat.net/wp-content/uploads/2020/07/chopper-2.jpg',
-    'https://ecdn.game4v.com/g4v-content/uploads/2020/05/Khoanh-khac-vi-dai-cua-Luffy-0-game4v.png',
-    'https://hosonhanvat.net/wp-content/uploads/2020/07/chopper-2.jpg',
-  ]);
+  const [nameTruck, setNameTruck] = useState('Suzuki Carry Truck');
+  const [validNameTruck, setValidNameTruck] = useState(false);
+  const [numberTruck, setNumberTruck] = useState('59-M1.12345');
+  const [validNumberTruck, setValidNumberTruck] = useState(false);
+
+  const [listImages, setListImages] = useState([]);
+  const [listImageSends, setListImageSend] = useState([]);
+  const [checkUpload, setCheckUpload] = useState(false);
+  const [trucksType, setTrucksType] = useState([]);
+  const { user, dispatch } = useContext(AuthContext);
+
+  const checkValid = () => true; // validNameTruck && validNumberTruck;
+
+  const navigation = useNavigation();
+
+  const openCamera = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (permissionResult.granted === false) {
+      alert("You've refused to allow this appp to access your camera!");
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      base64: true,
+    });
+    if (!result.canceled) {
+      setListImages([...listImages, result.assets[0].uri]);
+      setListImageSend([...listImageSends, result.assets[0]]);
+    }
+  };
+
+  const handleSendRequest = async () => {
+    setCheckUpload(true);
+    let listURLImage = [];
+    for (let i = 0; i < listImageSends.length; i++) {
+      const blob = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+          resolve(xhr.response);
+        };
+        xhr.onerror = function (e) {
+          reject(new TypeError('Network request failed'));
+        };
+        xhr.responseType = 'blob';
+        xhr.open('GET', listImageSends[i].uri, true);
+        xhr.send(null);
+      });
+
+      const ref = firebase.storage().ref().child(uuid.v4());
+      const snapshot = await ref.put(blob);
+      // We're done with the blob, close and release it
+      blob.close();
+      const temp = await snapshot.ref.getDownloadURL();
+      listURLImage.push(temp);
+    }
+    //api add
+    const typeTruckTemp = trucksType.find((item) => item.name === valueTruck);
+    const newTruck = {
+      license_plate: numberTruck.trim(),
+      id_shipper: user._id,
+      name: nameTruck.trim(),
+      type_truck: typeTruckTemp._id,
+      list_image_info: listURLImage,
+      status: 'Chưa duyệt',
+      default: false,
+      deleted: false,
+    };
+    const resTruck = await axiosClient.post('/gotruck/profileshipper/vehicle', newTruck);
+    if (resTruck.isExist) {
+      alert('Xe này đã được sử dụng bởi tài xế khác');
+      return;
+    }
+    const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + user.phone);
+    dispatch(LoginSuccess(userLogin));
+    setCheckUpload(false);
+    navigation.navigate('Vehicle');
+  };
+
+  useEffect(() => {
+    const getTrucksType = async () => {
+      const res = await axiosClient.get('/gotruck/transportprice/trucktype');
+      let trucksType = [];
+      for (const e of res) {
+        trucksType.push({
+          label: 'Xe ' + e.name + ' tấn',
+          value: e.name,
+        });
+      }
+      setTrucksType([...res]);
+      setValueTruck(trucksType[0].value);
+      setItemsTruck(trucksType);
+    };
+    getTrucksType();
+  }, []);
 
   const renderRowImage = (arr, listImages = [], column = 3) => {
     return (
@@ -40,67 +126,112 @@ export default function FormVehicle() {
             </View>
           ))}
           {arr[arr.length - 1] == listImages[listImages.length - 1] && arr.length < column ? (
-            <ButtonAdd action={() => {}} />
+            <ButtonAdd action={() => openCamera()} />
           ) : null}
         </View>
         {arr[arr.length - 1] == listImages[listImages.length - 1] && arr.length == column ? (
-          <ButtonAdd action={() => {}} />
+          <ButtonAdd action={() => openCamera()} />
         ) : null}
       </View>
     );
   };
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.viewInput}>
-        <Text>Biển số xe</Text>
-        <MyInput
-          borderWidth={1}
-          placeholder={'59-M1.12345'}
-          value={setNumberTruck}
-          initialValue={item.license_plate}
-        />
-      </View>
-      <View style={styles.viewInput}>
-        <Text>Tên xe</Text>
-        <MyInput
-          borderWidth={1}
-          placeholder={'Suzuki Carry Truck'}
-          value={setNameTruck}
-          initialValue={item.name}
-        />
-      </View>
-      <View style={styles.viewInput}>
-        <Text>Trọng tải</Text>
-        <MyInput
-          borderWidth={1}
-          placeholder={'Toyota, Suzuki,...'}
-          value={setBrandTruck}
-          initialValue={item.type_truck.name+""}
-        />
-      </View>
-      <View style={styles.viewInput}>
-        <Text>Hình ảnh xe</Text>
-        {sliceIntoChunks(imagesTruck, 3).map((e, i) => (
-          <View key={i}>{renderRowImage(e, imagesTruck, 3)}</View>
-        ))}
-      </View>
-      <View style={styles.viewInput}>
-        <Text>Hình ảnh giấy tờ xe</Text>
-        {sliceIntoChunks(imagesPapers, 3).map((e, i) => (
-          <View key={i}>{renderRowImage(e, imagesPapers, 3)}</View>
-        ))}
-      </View>
-      <View style={{ marginTop: 20, marginBottom: 50 }}>
-        <MyButton
-          btnColor={stylesGlobal.mainGreen}
-          type={'large'}
-          text={'Gửi yêu cầu'}
-          txtColor="white"
-          action={() => {
-            navigation.navigate('SendFormSuccess');
-          }}
-        />
-      </View>
+      {checkUpload ? (
+        <AnimatedLoader
+          visible={true}
+          overlayColor="rgba(255,255,255,0.75)"
+          speed={1}
+          loop={true}
+        ></AnimatedLoader>
+      ) : (
+        <>
+          <View style={styles.viewInput}>
+            <Text>Biển số xe</Text>
+            <MyInput
+              borderWidth={1}
+              placeholder={'VD: 59-M1.12345'}
+              value={setNumberTruck}
+              regex={/^(([1-9]{2}|([2-9][0-9]))-([A-Z][1-9]).(\d{4}|\d{5}))$/}
+              error={'Biển số xe không hợp lệ'}
+              valid={setValidNumberTruck}
+              initialValue={numberTruck}
+            />
+          </View>
+          <View style={styles.viewInput}>
+            <Text>Tên xe</Text>
+            <MyInput
+              borderWidth={1}
+              placeholder={'VD: Suzuki Carry Truck'}
+              value={setNameTruck}
+              regex={/^.+$/}
+              error={'Tên xe không được để trống'}
+              valid={setValidNameTruck}
+              initialValue={nameTruck}
+            />
+          </View>
+
+          <View style={styles.viewInput}>
+            <Text>Chọn loại xe</Text>
+            <View style={{ marginTop: 10, flexDirection: 'row' }}>
+              <DropDownPicker
+                open={openTruck}
+                value={valueTruck}
+                items={itemsTruck}
+                setOpen={setOpenTruck}
+                setValue={setValueTruck}
+                setItems={setItemsTruck}
+                labelStyle={styles.font18}
+                textStyle={styles.font18}
+                zIndex={10000}
+                listMode="SCROLLVIEW"
+                scrollViewProps={{
+                  nestedScrollEnabled: true,
+                }}
+                placeholder="Chọn một loại xe"
+                defaultValue={'sports'}
+              />
+            </View>
+          </View>
+
+          <View style={styles.viewInputImage}>
+            <Text>Hình ảnh xe và giấy tờ xe</Text>
+            {listImages.length != 0 ? (
+              <>
+                {sliceIntoChunks(listImages, 3).map((e, i) => (
+                  <View key={i}>{renderRowImage(e, listImages, 3)}</View>
+                ))}
+              </>
+            ) : (
+              <ButtonAdd action={() => openCamera()} />
+            )}
+          </View>
+
+          <View style={{ marginTop: 20, marginBottom: 30 }}>
+            {checkValid() ? (
+              //  && listImages.length >= 4
+              <MyButton
+                btnColor={stylesGlobal.mainGreen}
+                type={'large'}
+                text={'Gửi yêu cầu'}
+                txtColor="white"
+                action={() => {
+                  handleSendRequest();
+                }}
+              />
+            ) : (
+              <MyButton
+                btnColor={stylesGlobal.lightGreen}
+                type={'large'}
+                text={'Gửi yêu cầu'}
+                txtColor="white"
+                disable={true}
+              />
+            )}
+          </View>
+        </>
+      )}
     </ScrollView>
   );
 }
