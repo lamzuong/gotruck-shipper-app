@@ -1,7 +1,7 @@
 import styles from './stylesSupport';
 import options from './optionsSupport';
 
-import { View, Text, BackHandler, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, BackHandler, FlatList, TouchableOpacity, Linking } from 'react-native';
 import React, { useEffect } from 'react';
 
 export default function Support({ navigation }) {
@@ -23,7 +23,13 @@ export default function Support({ navigation }) {
           return (
             <TouchableOpacity
               style={styles.item}
-              onPress={item.special ? () => {} : () => navigation.navigate(item.navigateTo)}
+              onPress={
+                item.special
+                  ? () => {
+                    Linking.openURL(`tel:${"0123456789"}`);
+                    }
+                  : () => navigation.navigate(item.navigateTo)
+              }
             >
               <View>{item.icon}</View>
               <Text style={[styles.txtItem, { color: item.color }]}>{item.title}</Text>

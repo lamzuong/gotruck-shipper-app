@@ -1,16 +1,18 @@
 import styles from './stylesGoTruckPay';
 
 import { View, Text, TouchableOpacity } from 'react-native';
-import React from 'react';
+import React, { useContext } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { AuthContext } from '../../../../context/AuthContext';
 
 export default function GoTruckPay({ navigation }) {
   const money = 22150123;
+  const {user} = useContext(AuthContext)
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Số dư hiện tại</Text>
       <Text style={styles.money}>
-        {money.toFixed(0).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.') + ' VNĐ'}
+        {user.balance.toFixed(0).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.') + ' VNĐ'}
       </Text>
 
       <View style={styles.viewOptions}>

@@ -290,7 +290,7 @@ export default function Home({ navigation, route }) {
     (async function () {
       const idOrderCurrent = await AsyncStorage.getItem('idOrderCurrent');
       if (haveOrder && idOrderCurrent) {
-        const resultRoute = await getRouteTwoLocation(locationShipper,orderItem.to_address);
+        const resultRoute = await getRouteTwoLocation(locationShipper, orderItem.to_address);
         let routePolyTemp = [];
         if (resultRoute) {
           const listPoly = getPoLylineFromEncode(resultRoute?.result.routes[0].overviewPolyline);
@@ -327,8 +327,7 @@ export default function Home({ navigation, route }) {
         provider={PROVIDER_GOOGLE}
         initialRegion={INITIAL_POSITION}
         zoomEnabled={true}
-        addressForCoordinate={(e) => {
-        }}
+        addressForCoordinate={(e) => {}}
       >
         {haveOrder && (
           <Polyline coordinates={routePolyline} strokeColor="rgb(0,176,255)" strokeWidth={8} />
@@ -492,7 +491,13 @@ export default function Home({ navigation, route }) {
           <TouchableOpacity
             style={[styles.btnPower, { backgroundColor: 'red' }]}
             onPress={() => {
-              setStatus(!status);
+              if (user.balance <= -200000) {
+                Alert.alert('Thông báo', 'Vui lòng nạp tiền vào vi GoTruck để tiếp tục giao hàng', [
+                  { text: 'OK', onPress: () => {} },
+                ]);
+              } else {
+                setStatus(!status);
+              }
             }}
           >
             <AntDesign name="poweroff" size={24} color="white" />

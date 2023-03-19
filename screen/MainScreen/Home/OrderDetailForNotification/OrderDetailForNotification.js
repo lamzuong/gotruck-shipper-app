@@ -24,6 +24,14 @@ export default function OrderDetailForNotification() {
     navigation.navigate('ChatRoom', { item: resConversation });
   };
 
+  const hanleReceiveOrder = () => {
+    if (user.balance - item.total * (item.fee / 100) < -200000) {
+      alert('Số dư ví GoTruck không đủ, vui lòng nạp thêm tiền để nhận đơn');
+    } else {
+      navigation.navigate('Home', { checkHaveOrder: true, itemOrder: item });
+    }
+  };
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={{ paddingHorizontal: 20 }}>
@@ -143,7 +151,7 @@ export default function OrderDetailForNotification() {
             btnColor={stylesGlobal.mainGreen}
             txtColor="white"
             action={() => {
-              navigation.navigate('Home', { checkHaveOrder: true, itemOrder: item });
+              hanleReceiveOrder();
             }}
           />
         </View>

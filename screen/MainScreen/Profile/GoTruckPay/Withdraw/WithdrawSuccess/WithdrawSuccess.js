@@ -31,7 +31,7 @@ export default function WithdrawSuccess({ navigation }) {
           btnColor={'black'}
           txtColor="white"
           action={() => {
-            navigation.navigate('Home');
+            navigation.navigate('GoTruckPay');
           }}
         />
       </View>

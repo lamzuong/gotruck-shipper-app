@@ -1,12 +1,28 @@
 import styles from './stylesReview';
 import stylesGlobal from '../../../../global/stylesGlobal';
-import review from './data';
+// import review from './data';
 
 import { View, Text, BackHandler, ScrollView } from 'react-native';
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Rating } from 'react-native-ratings';
+import { AuthContext } from '../../../../context/AuthContext';
+import axiosClient from '../../../../api/axiosClient';
+import { useIsFocused } from '@react-navigation/native';
+import { formatDateFull } from '../../../../global/util';
 
 export default function Review({ navigation }) {
+  const [review, setReview] = useState([]);
+  const isFocus = useIsFocused();
+  const { user } = useContext(AuthContext);
+
+  useEffect(()=>{
+    const getReview = async () => {
+      const resReview = await axiosClient.get('gotruck/ordershipper/review/' + user._id);
+      setReview(resReview);
+    };
+    getReview();
+  },[isFocus])
+
   //----------Back Button----------
   useEffect(() => {
     const backAction = () => {
@@ -22,7 +38,7 @@ export default function Review({ navigation }) {
       {review.map((e, i) => (
         <View style={styles.wrapper} key={i}>
           <View style={[stylesGlobal.inlineBetween, styles.headComment]}>
-            <Text>{e.time}</Text>
+            <Text>{formatDateFull(e.time)}</Text>
 
             <Rating
               type="custom"
@@ -36,7 +52,7 @@ export default function Review({ navigation }) {
             />
           </View>
           <Text>
-            {e.comment == '' ? <Text style={{ fontStyle: 'italic' }}>(Không có)</Text> : e.comment}
+            {e.content == '' ? <Text style={{ fontStyle: 'italic' }}>(Không có)</Text> : e.content}
           </Text>
         </View>
       ))}
