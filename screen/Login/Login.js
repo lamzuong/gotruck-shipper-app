@@ -13,7 +13,7 @@ import firebase from 'firebase/compat';
 import axiosClient from '../../api/axiosClient';
 import { AuthContext } from '../../context/AuthContext';
 import { LoginSuccess, SetListOrder, SetLocation } from '../../context/AuthAction';
-import { getLocationCurrentOfUser } from '../../global/ultilLocation';
+import { getLocationCurrentOfUser } from '../../global/utilLocation';
 
 const widthScreen = Dimensions.get('window').width;
 const heightScreen = Dimensions.get('window').height;

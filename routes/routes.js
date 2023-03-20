@@ -24,8 +24,10 @@ import WithdrawSuccess from '../screen/MainScreen/Profile/GoTruckPay/Withdraw/Wi
 import Vehicle from '../screen/MainScreen/Profile/Vehicle/Vehicle';
 import FormVehicle from '../screen/MainScreen/Profile/Vehicle/FormVehicle/FormVehicle';
 import SendFormSuccess from '../screen/MainScreen/Profile/Vehicle/SendFormSuccess/SendFormSuccess';
-
+import ExpectedAddress from '../screen/MainScreen/Home/ExpectedAddress/ExpectedAddress';
 import OrderDetailForNotification from '../screen/MainScreen/Home/OrderDetailForNotification/OrderDetailForNotification';
+import SelectLocationOnMap from '../screen/MainScreen/Home/ExpectedAddress/SelectLocationOnMap/SelectLocationOnMap';
+
 // Không cần đăng nhập
 const publicRoutes = [
   { name: 'Login', component: Login, header: false },
@@ -33,6 +35,8 @@ const publicRoutes = [
 
   // Screen options in Home
   { name: 'NewOrderDetail', component: NewOrderDetail, header: false },
+  { name: 'ExpectedAddress', component: ExpectedAddress, header: false },
+  { name: 'SelectLocationOnMap', component: SelectLocationOnMap, header: false },
   {
     name: 'ReceiveGoods',
     component: ReceiveGoods,

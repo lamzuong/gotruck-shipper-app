@@ -36,17 +36,17 @@ import {
   getLocationCurrentOfUser,
   getPoLylineFromEncode,
   getRouteTwoLocation,
-} from '../../../global/ultilLocation';
+} from '../../../global/utilLocation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LoginSuccess } from '../../../context/AuthAction';
+import { formatDateFull } from '../../../global/util';
 
 export default function Home({ navigation, route }) {
-  const { dispath, user, locationNow } = useContext(AuthContext);
+  const { dispatch, user, locationNow } = useContext(AuthContext);
   const [status, setStatus] = useState(false);
   const [expand, setExpand] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
-  const [addressExpected, setAddressExpected] = useState(
-    '336/15/14 Lê Văn Quới, P. Bình Trị Đông, Q. Bình Tân',
-  );
+  const [addressExpected, setAddressExpected] = useState('');
   const [haveOrder, setHaveOrder] = useState(false);
   const [received, setReceived] = useState(false);
   const [listOrderNotify, setListOrderNotify] = useState([]);
@@ -117,6 +117,11 @@ export default function Home({ navigation, route }) {
         distanceTwoLocation >= 0 &&
         distanceTwoLocation <= 10000000 // distanceReceiveOrder.distance_receive_order
       ) {
+        const resultExpected = await getRouteTwoLocation(addressExpected, data.to_address);
+        const distanceExpected = resultExpected?.result?.routes[0]?.distance?.value || -1;
+        if (distanceExpected >= 0 && distanceExpected <= 5000) {
+          data.expected = true;
+        }
         setListOrderNotify((prev) => {
           return [...prev, data];
         });
@@ -174,6 +179,10 @@ export default function Home({ navigation, route }) {
             socketClient.off(getTruckDefault() + 'cancel');
             setOrderItem((prev) => route.params.itemOrder);
             setHaveOrder(true);
+            const res = await axiosClient.put('gotruck/ordershipper/expectedaddress', user);
+            const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + user.phone);
+            dispatch(LoginSuccess(userLogin));
+            setAddressExpected('');
             handleDirection(res.from_address);
             await AsyncStorage.setItem('idOrderCurrent', res.id_order);
             socketClient.emit('shipper_receive', res);
@@ -201,7 +210,8 @@ export default function Home({ navigation, route }) {
           await AsyncStorage.clear();
         }.call(this));
         stopZoomRef.current = false;
-      } else {
+      } else if (route.params.expected_address) {
+        setAddressExpected(route.params.expected_address);
       }
     }
   }, [route]);
@@ -284,6 +294,31 @@ export default function Home({ navigation, route }) {
       onSocketReceiveOrder();
       await AsyncStorage.clear();
     }
+  };
+
+  const checkTimeUsed = () => {
+    if (user.expected_address) {
+      const time_used = user.expected_address.time_used;
+      if (time_used) {
+        const dateUsed = new Date(time_used);
+        let ms1 = dateUsed.getTime();
+        let ms2 = new Date().getTime();
+        const time = Math.ceil((ms2 - ms1) / (24 * 60 * 60 * 1000));
+        if (time < 1) return true;
+        return false;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  };
+  const handleDateUsed = () => {
+    const time_used = user.expected_address.time_used;
+    let dateUsed = new Date(time_used);
+    dateUsed.setDate(dateUsed.getDate() + 1);
+    const dateNew = formatDateFull(dateUsed);
+    return dateNew;
   };
 
   useEffect(() => {
@@ -404,14 +439,24 @@ export default function Home({ navigation, route }) {
                 <CollapseBody>
                   <View style={styles.body}>
                     <Text>Địa điểm đến mong muốn</Text>
+                    {checkTimeUsed() && (
+                      <Text>Chức năng bị khóa đến: {handleDateUsed()}</Text>
+                    )}
                     <View>
-                      <Pressable style={styles.input} onPress={() => {}}>
+                      <Pressable
+                        style={styles.input}
+                        onPress={() => {
+                          if (!checkTimeUsed()) {
+                            navigation.navigate('ExpectedAddress');
+                          }
+                        }}
+                      >
                         <View style={stylesGlobal.inline}>
                           <Ionicons name="location-sharp" size={20} color="red" />
                           {addressExpected ? (
                             <ReadMore numberOfLines={1} renderTruncatedFooter={() => null}>
                               <Text style={{ fontSize: 16 }} numberOfLines={1}>
-                                {addressExpected}
+                                {addressExpected?.address}
                               </Text>
                             </ReadMore>
                           ) : (
@@ -454,6 +499,7 @@ export default function Home({ navigation, route }) {
                           <FontAwesome name="truck" size={24} color={stylesGlobal.darkGreen} />
                         </View>
                         <View>
+                          {e.expected && <Text style={styles.to_ad}>Đơn hàng mong đợi</Text>}
                           <Text style={styles.to_ad}>Đơn giao tới {e.to_address.address}</Text>
                           <View style={styles.txtContent}>
                             <ReadMore numberOfLines={1} renderTruncatedFooter={() => null}>

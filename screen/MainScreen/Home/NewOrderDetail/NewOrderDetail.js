@@ -7,7 +7,7 @@ import { View, Text, ScrollView, TouchableWithoutFeedback, Alert, Linking } from
 import React, { useContext, useState } from 'react';
 import { Feather, Foundation, Ionicons, SimpleLineIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { getRouteTwoLocation } from '../../../../global/ultilLocation';
+import { getRouteTwoLocation } from '../../../../global/utilLocation';
 import axiosClient from '../../../../api/axiosClient';
 import { AuthContext } from '../../../../context/AuthContext';
 import { socketClient } from '../../../../global/socket';
