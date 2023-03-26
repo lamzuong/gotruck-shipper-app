@@ -5,7 +5,7 @@ import MyInput from '../../../../../components/MyInput/MyInput';
 import MyButton from '../../../../../components/MyButton/MyButton';
 import ButtonAdd from '../../../../../components/ButtonAdd/ButtonAdd';
 
-import { View, Text, ScrollView, Image } from 'react-native';
+import { View, Text, ScrollView, Image, Alert, Linking } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import AnimatedLoader from 'react-native-animated-loader';
@@ -40,7 +40,14 @@ export default function FormVehicle() {
   const openCamera = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
     if (permissionResult.granted === false) {
-      alert("You've refused to allow this appp to access your camera!");
+      Alert.alert('Thông báo', 'Bạn đã từ chối cấp quyền truy cập máy ảnh', [
+        {
+          text: 'Hủy',
+          onPress: () => null,
+          style: 'cancel',
+        },
+        { text: 'Mở cài đặt', onPress: () => Linking.openSettings() },
+      ]);
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -51,7 +58,6 @@ export default function FormVehicle() {
       setListImageSend([...listImageSends, result.assets[0]]);
     }
   };
-
   const handleSendRequest = async () => {
     setCheckUpload(true);
     let listURLImage = [];
@@ -90,7 +96,8 @@ export default function FormVehicle() {
     };
     const resTruck = await axiosClient.post('/gotruck/profileshipper/vehicle', newTruck);
     if (resTruck.isExist) {
-      alert('Xe này đã được sử dụng bởi tài xế khác');
+      Alert.alert("Thông báo",'Xe này đã được sử dụng bởi tài xế khác');
+      setCheckUpload(false);
       return;
     }
     const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + user.phone);

@@ -71,8 +71,7 @@ export default function EditProfile({ navigation }) {
             setVerificationId(result);
             nextScreen();
           })
-          .catch((error) => {
-          });
+          .catch((error) => {});
       }
     } catch (error) {
       customAlert('Thông báo', 'Lỗi không xác định', null);
@@ -119,8 +118,11 @@ export default function EditProfile({ navigation }) {
           } else {
             user.phone = phone;
             user.name = name;
-            await axiosClient.put('/gotruck/authshipper/user/' + phoneInit, {
-              ...user,
+            await axiosClient.put('/gotruck/authshipper/user/edituser', {
+              user: {
+                ...user,
+              },
+              phoneInit: phoneInit,
             });
 
             dispatch(LoginSuccess(user));
@@ -218,8 +220,11 @@ export default function EditProfile({ navigation }) {
         user.avatar = downloadURL;
         user.phone = phone;
         user.name = name;
-        await axiosClient.put('/gotruck/authshipper/user/' + phoneInit, {
-          ...user,
+        await axiosClient.put('/gotruck/authshipper/user/edituser', {
+          user: {
+            ...user,
+          },
+          phoneInit: phoneInit,
         });
       } else {
         user.avatar = downloadURL;
@@ -314,21 +319,21 @@ export default function EditProfile({ navigation }) {
             style={styles.coverImage}
           />
           {screen == 1 && (
-            <TouchableOpacity style={styles.viewAvatar} onPress={() => setModalVisible(true)}>
+            <TouchableOpacity style={styles.viewAvatar} onPress={() => {}}>
               <Image
                 source={{
                   uri: imageUserNow.uri,
                 }}
                 style={styles.avatar}
               />
-              <AntDesign name="camera" size={24} color="black" style={styles.camera} />
+              {/* <AntDesign name="camera" size={24} color="black" style={styles.camera} /> */}
             </TouchableOpacity>
           )}
         </View>
 
         {screen == 1 ? (
           <>
-            <View style={styles.viewInput}>
+            {/* <View style={styles.viewInput}>
               <Text style={styles.label}>Họ tên</Text>
               <MyInput
                 borderWidth={1}
@@ -339,7 +344,7 @@ export default function EditProfile({ navigation }) {
                 inputName={true}
                 error={'Họ tên không hợp lệ'}
               />
-            </View>
+            </View> */}
 
             <View style={styles.viewInput}>
               <Text style={styles.label}>Số điện thoại</Text>

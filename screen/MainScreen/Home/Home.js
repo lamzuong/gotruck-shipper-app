@@ -15,6 +15,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Dimensions,
+  Platform,
   Pressable,
   ScrollView,
   StatusBar,
@@ -113,12 +114,9 @@ export default function Home({ navigation, route }) {
       const resultRoute = await getRouteTwoLocation(locationShipper, data.from_address);
       const distanceTwoLocation = resultRoute?.result?.routes[0]?.distance?.value || -1;
       const distanceReceiveOrder = await axiosClient.get('gotruck/ordershipper/distancereceive');
-      if (
-        distanceTwoLocation >= 0 &&
-        distanceTwoLocation <= 10000000 // distanceReceiveOrder.distance_receive_order
-      ) {
+      if (distanceTwoLocation >= 0 && distanceReceiveOrder.distance_receive_order) {
         const resultExpected = await getRouteTwoLocation(addressExpected, data.to_address);
-        const distanceExpected = resultExpected?.result?.routes[0]?.distance?.value || -1;
+        const distanceExpected = resultExpected?.result?.routes[0]?.distance?.value;
         if (distanceExpected >= 0 && distanceExpected <= 5000) {
           data.expected = true;
         }
@@ -126,7 +124,9 @@ export default function Home({ navigation, route }) {
           return [...prev, data];
         });
       } else if (distanceTwoLocation < 0) {
+        console.log('k cos duong di');
       } else {
+        console.log('quas xa');
       }
     });
   };
@@ -179,12 +179,15 @@ export default function Home({ navigation, route }) {
             socketClient.off(getTruckDefault() + 'cancel');
             setOrderItem((prev) => route.params.itemOrder);
             setHaveOrder(true);
-            const res = await axiosClient.put('gotruck/ordershipper/expectedaddress', user);
+            const resExpectedAddress = await axiosClient.put(
+              'gotruck/ordershipper/expectedaddress',
+              user,
+            );
             const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + user.phone);
             dispatch(LoginSuccess(userLogin));
             setAddressExpected('');
             handleDirection(res.from_address);
-            await AsyncStorage.setItem('idOrderCurrent', res.id_order);
+            await AsyncStorage.setItem('orderCurrent', JSON.stringify(res));
             socketClient.emit('shipper_receive', res);
           } else if (res.status == 'Đã hủy' && res.reason_cancel.user_cancel === 'AutoDelete') {
             Alert.alert('Thông báo', 'Đơn hàng đã quá hạn');
@@ -207,7 +210,15 @@ export default function Home({ navigation, route }) {
         onSocketReceiveOrder();
         onSocketCancel();
         (async function () {
-          await AsyncStorage.clear();
+          const asyncStorageKeys = await AsyncStorage.getAllKeys();
+          if (asyncStorageKeys.length > 0) {
+            if (Platform.OS === 'android') {
+              await AsyncStorage.clear();
+            }
+            if (Platform.OS === 'ios') {
+              await AsyncStorage.multiRemove(asyncStorageKeys);
+            }
+          }
         }.call(this));
         stopZoomRef.current = false;
       } else if (route.params.expected_address) {
@@ -292,10 +303,8 @@ export default function Home({ navigation, route }) {
       setListOrderNotify([]);
       setHaveOrder(false);
       onSocketReceiveOrder();
-      await AsyncStorage.clear();
     }
   };
-
   const checkTimeUsed = () => {
     if (user.expected_address) {
       const time_used = user.expected_address.time_used;
@@ -304,7 +313,7 @@ export default function Home({ navigation, route }) {
         let ms1 = dateUsed.getTime();
         let ms2 = new Date().getTime();
         const time = Math.ceil((ms2 - ms1) / (24 * 60 * 60 * 1000));
-        if (time < 1) return true;
+        if (time <= 1) return true;
         return false;
       } else {
         return false;
@@ -323,9 +332,10 @@ export default function Home({ navigation, route }) {
 
   useEffect(() => {
     (async function () {
-      const idOrderCurrent = await AsyncStorage.getItem('idOrderCurrent');
-      if (haveOrder && idOrderCurrent) {
-        const resultRoute = await getRouteTwoLocation(locationShipper, orderItem.to_address);
+      const orderCurrentStr = await AsyncStorage.getItem('orderCurrent');
+      const orderCurrent = JSON.parse(orderCurrentStr || '{}');
+      if (haveOrder && orderCurrent) {
+        const resultRoute = await getRouteTwoLocation(locationShipper, orderCurrent.to_address);
         let routePolyTemp = [];
         if (resultRoute) {
           const listPoly = getPoLylineFromEncode(resultRoute?.result.routes[0].overviewPolyline);
@@ -341,9 +351,10 @@ export default function Home({ navigation, route }) {
   // useEffect(() => {
   //   const timeId = setInterval(async () => {
   //     const location = await getLocationCurrentOfUser();
-  //     const idOrderCurrent = await AsyncStorage.getItem('idOrderCurrent');
+  //     const orderCurrentStr = await AsyncStorage.getItem('orderCurrent');
+  //     const orderCurrent = JSON.parse(orderCurrentStr || '{}');
   //     socketClient.emit('location_shipper', {
-  //       id_order: idOrderCurrent || '',
+  //       id_order: orderCurrent.id_order || '',
   //       locationShipper: location,
   //     });
   //     setLocationShipper(location);
@@ -362,7 +373,6 @@ export default function Home({ navigation, route }) {
         provider={PROVIDER_GOOGLE}
         initialRegion={INITIAL_POSITION}
         zoomEnabled={true}
-        addressForCoordinate={(e) => {}}
       >
         {haveOrder && (
           <Polyline coordinates={routePolyline} strokeColor="rgb(0,176,255)" strokeWidth={8} />
@@ -440,7 +450,10 @@ export default function Home({ navigation, route }) {
                   <View style={styles.body}>
                     <Text>Địa điểm đến mong muốn</Text>
                     {checkTimeUsed() && (
-                      <Text>Chức năng bị khóa đến: {handleDateUsed()}</Text>
+                      <Text>
+                        Lần sử dụng tiếp theo sau:{'\n'}
+                        {handleDateUsed()}
+                      </Text>
                     )}
                     <View>
                       <Pressable
@@ -489,7 +502,11 @@ export default function Home({ navigation, route }) {
                     {listOrderNotify.map((e, i) => (
                       <TouchableOpacity
                         key={i}
-                        style={[stylesGlobal.inline, styles.itemMess]}
+                        style={[
+                          stylesGlobal.inline,
+                          styles.itemMess,
+                          { backgroundColor: `${e.expected ? stylesGlobal.lightGreen : ''}` },
+                        ]}
                         onPress={() => {
                           setShowMessage(false);
                           navigation.navigate('OrderDetailForNotification', { item: e });
@@ -499,7 +516,11 @@ export default function Home({ navigation, route }) {
                           <FontAwesome name="truck" size={24} color={stylesGlobal.darkGreen} />
                         </View>
                         <View>
-                          {e.expected && <Text style={styles.to_ad}>Đơn hàng mong đợi</Text>}
+                          {e.expected && (
+                            <Text style={[styles.to_ad, { color: stylesGlobal.mainGreen }]}>
+                              Đơn hàng mong đợi
+                            </Text>
+                          )}
                           <Text style={styles.to_ad}>Đơn giao tới {e.to_address.address}</Text>
                           <View style={styles.txtContent}>
                             <ReadMore numberOfLines={1} renderTruncatedFooter={() => null}>

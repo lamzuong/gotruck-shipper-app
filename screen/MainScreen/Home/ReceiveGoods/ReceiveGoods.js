@@ -4,7 +4,7 @@ import { sliceIntoChunks } from '../../../../global/functionGlobal';
 import ButtonAdd from '../../../../components/ButtonAdd/ButtonAdd';
 import MyButton from '../../../../components/MyButton/MyButton';
 
-import { View, Text, Image, ScrollView } from 'react-native';
+import { View, Text, Image, ScrollView, Alert, Linking } from 'react-native';
 import React, { useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import firebase from 'firebase/compat';
@@ -24,7 +24,14 @@ export default function ReceiveGoods({ navigation }) {
   const openCamera = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
     if (permissionResult.granted === false) {
-      alert("You've refused to allow this appp to access your camera!");
+      Alert.alert('Thông báo', 'Bạn đã từ chối cấp quyền truy cập máy ảnh', [
+        {
+          text: 'Hủy',
+          onPress: () => null,
+          style: 'cancel',
+        },
+        { text: 'Mở cài đặt', onPress: () => Linking.openSettings() },
+      ]);
       return;
     }
     const result = await ImagePicker.launchCameraAsync({

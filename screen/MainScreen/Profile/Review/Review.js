@@ -49,6 +49,7 @@ export default function Review({ navigation }) {
               ratingBackgroundColor="rgb(200,200,200)"
               isDisabled={true}
               readonly
+
             />
           </View>
           <Text>

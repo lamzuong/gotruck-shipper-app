@@ -26,7 +26,7 @@ export default function OrderDetailForNotification() {
 
   const hanleReceiveOrder = () => {
     if (user.balance - item.total * (item.fee / 100) < -200000) {
-      alert('Số dư ví GoTruck không đủ, vui lòng nạp thêm tiền để nhận đơn');
+      Alert.alert("Thông báo",'Số dư ví GoTruck không đủ, vui lòng nạp thêm tiền để nhận đơn');
     } else {
       navigation.navigate('Home', { checkHaveOrder: true, itemOrder: item });
     }

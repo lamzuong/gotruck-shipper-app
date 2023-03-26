@@ -4,8 +4,8 @@ import { sliceIntoChunks } from '../../../../global/functionGlobal';
 import ButtonAdd from '../../../../components/ButtonAdd/ButtonAdd';
 import MyButton from '../../../../components/MyButton/MyButton';
 
-import { View, Text, Image, ScrollView } from 'react-native';
-import React, { useState } from 'react';
+import { View, Text, Image, ScrollView, Alert, Linking } from 'react-native';
+import React, { useContext, useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import firebase from 'firebase/compat';
 import uuid from 'react-native-uuid';
@@ -13,6 +13,8 @@ import { useRoute } from '@react-navigation/native';
 import { socketClient } from '../../../../global/socket';
 import axiosClient from '../../../../api/axiosClient';
 import AnimatedLoader from 'react-native-animated-loader';
+import {AuthContext} from "../../../../context/AuthContext"
+import {LoginSuccess} from "../../../../context/AuthAction"
 
 export default function ShippedGoods({ navigation }) {
   const [listImages, setListImages] = useState([]);
@@ -20,10 +22,18 @@ export default function ShippedGoods({ navigation }) {
   const [checkUpload, setCheckUpload] = useState(false);
   const route = useRoute();
   const { item } = route.params;
+  const {user,dispatch} = useContext(AuthContext);
   const openCamera = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
     if (permissionResult.granted === false) {
-      alert("You've refused to allow this appp to access your camera!");
+      Alert.alert('Thông báo', 'Bạn đã từ chối cấp quyền truy cập máy ảnh', [
+        {
+          text: 'Hủy',
+          onPress: () => null,
+          style: 'cancel',
+        },
+        { text: 'Mở cài đặt', onPress: () => Linking.openSettings() },
+      ]);
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -64,6 +74,8 @@ export default function ShippedGoods({ navigation }) {
     itemSend.status = 'Đã giao';
     itemSend.list_image_to_of_shipper = listURLImage;
     const resOrder = await axiosClient.put('/gotruck/ordershipper/receivegoods', itemSend);
+    const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + user.phone);
+    dispatch(LoginSuccess(userLogin));
     setCheckUpload(false);
     socketClient.emit("shipper_completed",resOrder);
     navigation.navigate('FinishPage', {

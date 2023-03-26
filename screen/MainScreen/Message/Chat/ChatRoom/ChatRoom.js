@@ -10,6 +10,7 @@ import {
   BackHandler,
   Linking,
   Keyboard,
+  Alert,
 } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { Ionicons, Feather } from '@expo/vector-icons';
@@ -30,7 +31,7 @@ export default function ChatRoom({ route }) {
     if (item?.id_customer?.phone) {
       Linking.openURL(`tel:${item.id_customer.phone}`);
     } else {
-      alert('Không thể gọi cho số điện thoại này');
+      Alert.alert("Thông báo",'Không thể gọi cho số điện thoại này');
     }
   };
 

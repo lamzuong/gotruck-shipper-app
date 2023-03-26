@@ -23,10 +23,6 @@ export default function Vehicle({ navigation }) {
   const { user, dispatch } = useContext(AuthContext);
 
   const truck = user.infoAllTruck;
-  if (truck) {
-    truck.sort((a, b) => a.status < b.status);
-    truck.sort((a, b) => a.default === false);
-  }
 
   const handleSetDefault = async () => {
     const res = await axiosClient.put('gotruck/profileshipper/vehicle', {
@@ -138,7 +134,12 @@ export default function Vehicle({ navigation }) {
       <View style={{ marginTop: 10 }}>
         <ButtonAdd
           action={() => {
-            navigation.navigate('FormVehicle');
+            if (truck.length >= 5) {
+              Alert.alert("Thông báo","Bạn chỉ được đăng kí tối đa 5 phương tiện")
+            }
+            else{
+              navigation.navigate('FormVehicle');
+            }
           }}
         />
       </View>

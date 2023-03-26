@@ -12,7 +12,7 @@ export default function FinishPage({ navigation }) {
   const { item } = route.params;
 
   const formatCurrency=(data)=>{
-    return data
+    return data.toFixed(0).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.') + ' VNĐ'
   }
   return (
     <View style={styles.container}>
@@ -22,12 +22,12 @@ export default function FinishPage({ navigation }) {
       <View style={styles.center}>
         <View style={styles.total}>
           <Text style={styles.label}>Tiền vận chuyển:</Text>
-          <Text style={styles.content}>{item.total} VNĐ</Text>
+          <Text style={styles.content}>{formatCurrency(item.total)}</Text>
         </View>
       
         <View style={styles.account}>
           <Text style={styles.label}>Tài khoản:</Text>
-          <Text style={styles.content}>- {formatCurrency(item.total*item.fee/100)} VNĐ</Text>
+          <Text style={styles.content}>- {formatCurrency(item.total*item.fee/100)}</Text>
         </View>
       </View>
       <View style={styles.bottom}>

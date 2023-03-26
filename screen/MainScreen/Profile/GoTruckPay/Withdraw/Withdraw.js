@@ -3,7 +3,7 @@ import stylesGlobal from '../../../../../global/stylesGlobal';
 import MyInput from '../../../../../components/MyInput/MyInput';
 import MyButton from '../../../../../components/MyButton/MyButton';
 
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Alert } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { LogBox } from 'react-native';
@@ -33,10 +33,10 @@ export default function Withdraw({ navigation }) {
 
   const handleWithdraw = async () => {
     if (money < 100000) {
-      alert('Số tiền rút tối thiểu là 100,000 đồng');
+      Alert.alert("Thông báo",'Số tiền rút tối thiểu là 100,000 đồng');
       return;
     } else if (money > 100000000) {
-      alert('Số tiền rút tối đa là 100,000,000 đồng');
+      Alert.alert("Thông báo",'Số tiền rút tối đa là 100,000,000 đồng');
       return;
     }
     const bankSelected = listBank.find((item) => item.name_short === valueBank);
@@ -57,7 +57,7 @@ export default function Withdraw({ navigation }) {
       dispatch(LoginSuccess(userLogin));
       navigation.navigate('WithdrawSuccess');
     } else {
-      alert('Số dư ví GoTruck của bạn không đủ');
+      Alert.alert("Thông báo",'Số dư ví GoTruck của bạn không đủ');
     }
   };
 
