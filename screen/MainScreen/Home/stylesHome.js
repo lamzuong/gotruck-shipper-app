@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     borderColor: 'grey',
-    backgroundColor:"white"
+    backgroundColor: 'white',
   },
   itemMess: {
     marginBottom: 10,
@@ -123,12 +123,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   map: {
-    position: "absolute",
-    width: Dimensions.get("window").width,
-    height: Dimensions.get("window").height,
+    position: 'absolute',
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
   },
-  to_ad:{
-    fontWeight:"bold"
+  to_ad: {
+    fontWeight: 'bold',
   },
   marker: {
     textAlign: 'center',
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   coordinate: {
     marginHorizontal: 75,
     backgroundColor: 'white',
-    paddingHorizontal:5,
+    paddingHorizontal: 5,
   },
   title: {
     fontWeight: 'bold',
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     height: 250,
     top: heightScreen / 4.5,
     width: widthScreen / 1.2,
-    left:30,
+    left: 30,
     borderWidth: 1,
     borderColor: 'gray',
     borderRadius: 10,
@@ -182,6 +182,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
     bottom: 10,
+  },
+  openGGMap: {
+    backgroundColor: stylesGlobal.mainGreen,
+    height: 60,
+    width: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 60,
+    right: 10,
+    zIndex: 999,
+    position: 'absolute',
+    top: Dimensions.get('window').height / 2,
   },
 });
 

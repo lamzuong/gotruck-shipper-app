@@ -27,7 +27,7 @@ export default function WithdrawSuccess({ navigation }) {
       <View style={{ alignItems: 'center', margin: 20 }}>
         <MyButton
           type={'large'}
-          text="Trở về trang chủ"
+          text="Tiếp tục"
           btnColor={'black'}
           txtColor="white"
           action={() => {

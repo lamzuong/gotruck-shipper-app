@@ -80,8 +80,18 @@ export default function Login({ navigation }) {
         .signInWithCredential(credential)
         .then(async () => {
           const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + phone);
-          dispatch(LoginSuccess(userLogin));
-          toMainScreen();
+          if (userLogin.notFound) {
+            Alert.alert('Thông báo', 'Lỗi không xác định vui lòng đăng nhập lại sau');
+          } else {
+            const orderList = await axiosClient.get(
+              'gotruck/ordershipper/shipper/' + userLogin._id,
+            );
+            const currentLocation = await getLocationCurrentOfUser();
+            dispatch(LoginSuccess(userLogin));
+            dispatch(SetLocation(currentLocation));
+            dispatch(SetListOrder(orderList));
+            toMainScreen();
+          }
         })
         .catch((err) => {
           Alert.alert('Thông báo', 'Mã OTP không chính xác');

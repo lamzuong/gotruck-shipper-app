@@ -8,8 +8,6 @@ import { AuthContext } from '../../../context/AuthContext';
 
 export default function Profile({ navigation }) {
   const {user} = useContext(AuthContext);
-
-
   const confirmRequest = (screen) => {
     Alert.alert('Xác nhận', 'Bạn có muốn đăng xuất khỏi ứng dụng ?', [
       {

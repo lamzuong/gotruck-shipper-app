@@ -32,18 +32,22 @@ export default function NewOrderDetail({ setShowModal, item, show, received, loc
     if (distanceTwoLocation && distanceTwoLocation > 1000) {
       Alert.alert(
         'Xác nhận',
-        'Vị trí của bạn khác vị trí giao hàng!\nChúng tôi sẽ ghi nhận và thông báo cho khách hàng nếu bạn tiếp tục',
+        'Vị trí của bạn khác vị trí giao hàng!\nChúng tôi sẽ ghi nhận và thông báo cho khách hàng',
         [
           {
             text: 'Hủy',
             onPress: () => null,
             style: 'cancel',
           },
-          { text: 'OK', onPress: () => navigation.navigate('ShippedGoods', { item: item }) },
+          {
+            text: 'OK',
+            onPress: () =>
+              navigation.navigate('ShippedGoods', { item: item, locationShipper: locationShipper }),
+          },
         ],
       );
     } else {
-      navigation.navigate('ShippedGoods', { item: item });
+      navigation.navigate('ShippedGoods', { item: item, locationShipper: locationShipper });
     }
   };
   return (

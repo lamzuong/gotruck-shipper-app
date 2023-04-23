@@ -35,8 +35,8 @@ export default function Withdraw({ navigation }) {
     if (money < 100000) {
       Alert.alert("Thông báo",'Số tiền rút tối thiểu là 100,000 đồng');
       return;
-    } else if (money > 100000000) {
-      Alert.alert("Thông báo",'Số tiền rút tối đa là 100,000,000 đồng');
+    } else if (money > 10000000) {
+      Alert.alert("Thông báo",'Số tiền rút tối đa là 10,000,000 đồng');
       return;
     }
     const bankSelected = listBank.find((item) => item.name_short === valueBank);
@@ -85,7 +85,7 @@ export default function Withdraw({ navigation }) {
             width={'94%'}
             value={setMoney}
             regex={/^\d+$/}
-            error={'Số tiền là số và không được để trống'}
+            error={'Số tiền không hợp lệ'}
             valid={setValidMoney}
           />
           <Text style={{ fontSize: 18, fontWeight: 'bold' }}>VNĐ</Text>

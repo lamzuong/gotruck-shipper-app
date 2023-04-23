@@ -5,7 +5,7 @@ import MyInput from '../../../../../components/MyInput/MyInput';
 import MyButton from '../../../../../components/MyButton/MyButton';
 import ButtonAdd from '../../../../../components/ButtonAdd/ButtonAdd';
 
-import { View, Text, ScrollView, Image, Alert, Linking } from 'react-native';
+import { View, Text, ScrollView, Image, Alert, Linking, TouchableOpacity } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import AnimatedLoader from 'react-native-animated-loader';
@@ -96,7 +96,7 @@ export default function FormVehicle() {
     };
     const resTruck = await axiosClient.post('/gotruck/profileshipper/vehicle', newTruck);
     if (resTruck.isExist) {
-      Alert.alert("Thông báo",'Xe này đã được sử dụng bởi tài xế khác');
+      Alert.alert('Thông báo', 'Xe này đã được sử dụng bởi tài xế khác');
       setCheckUpload(false);
       return;
     }
@@ -104,6 +104,19 @@ export default function FormVehicle() {
     dispatch(LoginSuccess(userLogin));
     setCheckUpload(false);
     navigation.navigate('Vehicle');
+  };
+
+  const removeImage = (uri) => {
+    const newListImage = listImages;
+    const newListImageSend = listImageSends;
+
+    const index = listImages.indexOf(uri);
+    if (index > -1) {
+      newListImage.splice(index, 1);
+      newListImageSend.splice(index, 1);
+    }
+    setListImages([...newListImage]);
+    setListImageSend([...newListImageSend]);
   };
 
   useEffect(() => {
@@ -128,8 +141,19 @@ export default function FormVehicle() {
       <View>
         <View style={{ flexDirection: 'row', marginVertical: 10 }}>
           {arr.map((e, i) => (
-            <View style={{ width: '36%' }} key={i}>
+            <View style={{ width: '36%'}} key={i}>
               <Image source={{ uri: e }} style={styles.itemImage} />
+              <TouchableOpacity
+                style={styles.removeImage}
+                onPress={() => {
+                  removeImage(e);
+                }}
+              >
+                <Image
+                  source={require('../../../../../assets/images/close.png')}
+                  style={{ width: 20, height: 20 }}
+                />
+              </TouchableOpacity>
             </View>
           ))}
           {arr[arr.length - 1] == listImages[listImages.length - 1] && arr.length < column ? (
@@ -216,8 +240,7 @@ export default function FormVehicle() {
           </View>
 
           <View style={{ marginTop: 20, marginBottom: 30 }}>
-            {checkValid() ? (
-              //  && listImages.length >= 4
+            {checkValid() && listImages.length >= 4 ? (
               <MyButton
                 btnColor={stylesGlobal.mainGreen}
                 type={'large'}

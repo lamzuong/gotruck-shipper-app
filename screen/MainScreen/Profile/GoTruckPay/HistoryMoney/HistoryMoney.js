@@ -25,9 +25,15 @@ export default function HistoryMoney() {
     <ScrollView style={styles.container}>
       {data.map((e, i) => (
         <View key={i} style={styles.item}>
-          <Text>
-            {e.type === 'Nạp tiền' ? 'Bạn đã gửi yêu cầu nạp tiền' : 'Bạn đã gửi yêu cầu rút tiền'}
-          </Text>
+          <View style={{ display: 'flex', flexDirection: 'row' }}>
+            <Text>
+              {e.type === 'Nạp tiền'
+                ? 'Bạn đã gửi yêu cầu nạp tiền'
+                : 'Bạn đã gửi yêu cầu rút tiền'}
+            </Text>
+            <Text style={{ marginLeft: 10, color: stylesGlobal.mainGreen }}>{e.status}</Text>
+          </View>
+
           <View style={stylesGlobal.inlineBetween}>
             <Text style={e.type === 'Nạp tiền' ? styles.add : styles.sub}>
               {e.type === 'Nạp tiền' ? '+' : '-'}

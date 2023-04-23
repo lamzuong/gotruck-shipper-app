@@ -4,7 +4,7 @@ import { sliceIntoChunks } from '../../../../global/functionGlobal';
 import ButtonAdd from '../../../../components/ButtonAdd/ButtonAdd';
 import MyButton from '../../../../components/MyButton/MyButton';
 
-import { View, Text, Image, ScrollView, Alert, Linking } from 'react-native';
+import { View, Text, Image, ScrollView, Alert, Linking, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import firebase from 'firebase/compat';
@@ -21,6 +21,7 @@ export default function ReceiveGoods({ navigation }) {
 
   const route = useRoute();
   const { item } = route.params;
+
   const openCamera = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
     if (permissionResult.granted === false) {
@@ -44,6 +45,12 @@ export default function ReceiveGoods({ navigation }) {
   };
 
   const handleConfirm = async () => {
+    if (item.payer === 'send') {
+      Alert.alert(
+        'Thông báo',
+        'Tiền vận chuyển do người gửi hàng trả.\nBạn nhớ nhận tiền vận chuyển tại người gửi hàng',
+      );
+    }
     setCheckUpload(true);
     let listURLImage = [];
     // setCheckUpload(true);
@@ -78,6 +85,19 @@ export default function ReceiveGoods({ navigation }) {
     });
   };
 
+  const removeImage = (uri) => {
+    const newListImage = listImages;
+    const newListImageSend = listImageSends;
+
+    const index = listImages.indexOf(uri);
+    if (index > -1) {
+      newListImage.splice(index, 1);
+      newListImageSend.splice(index, 1);
+    }
+    setListImages([...newListImage]);
+    setListImageSend([...newListImageSend]);
+  };
+
   const renderRowImage = (arr, listImages = [], column = 3) => {
     return (
       <View>
@@ -85,6 +105,17 @@ export default function ReceiveGoods({ navigation }) {
           {arr.map((e, i) => (
             <View style={{ width: '36%' }} key={i}>
               <Image source={{ uri: e }} style={styles.itemImage} />
+              <TouchableOpacity
+                style={styles.removeImage}
+                onPress={() => {
+                  removeImage(e);
+                }}
+              >
+                <Image
+                  source={require('../../../../assets/images/close.png')}
+                  style={{ width: 20, height: 20 }}
+                />
+              </TouchableOpacity>
             </View>
           ))}
           {arr[arr.length - 1] == listImages[listImages.length - 1] && arr.length < column ? (
@@ -122,8 +153,7 @@ export default function ReceiveGoods({ navigation }) {
             )}
           </ScrollView>
           <View style={{ alignItems: 'center' }}>
-            {/* {listImages.length > 0 ? ( */}
-            {listImages.length == 0 ? (
+            {listImages.length > 0 ? (
               <MyButton
                 type={'large'}
                 btnColor={stylesGlobal.mainGreen}

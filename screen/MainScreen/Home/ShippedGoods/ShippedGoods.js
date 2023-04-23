@@ -4,7 +4,7 @@ import { sliceIntoChunks } from '../../../../global/functionGlobal';
 import ButtonAdd from '../../../../components/ButtonAdd/ButtonAdd';
 import MyButton from '../../../../components/MyButton/MyButton';
 
-import { View, Text, Image, ScrollView, Alert, Linking } from 'react-native';
+import { View, Text, Image, ScrollView, Alert, Linking, TouchableOpacity } from 'react-native';
 import React, { useContext, useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import firebase from 'firebase/compat';
@@ -13,16 +13,16 @@ import { useRoute } from '@react-navigation/native';
 import { socketClient } from '../../../../global/socket';
 import axiosClient from '../../../../api/axiosClient';
 import AnimatedLoader from 'react-native-animated-loader';
-import {AuthContext} from "../../../../context/AuthContext"
-import {LoginSuccess} from "../../../../context/AuthAction"
+import { AuthContext } from '../../../../context/AuthContext';
+import { LoginSuccess } from '../../../../context/AuthAction';
 
 export default function ShippedGoods({ navigation }) {
   const [listImages, setListImages] = useState([]);
   const [listImageSends, setListImageSend] = useState([]);
   const [checkUpload, setCheckUpload] = useState(false);
   const route = useRoute();
-  const { item } = route.params;
-  const {user,dispatch} = useContext(AuthContext);
+  const { item, locationShipper } = route.params;
+  const { user, dispatch } = useContext(AuthContext);
   const openCamera = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
     if (permissionResult.granted === false) {
@@ -73,14 +73,28 @@ export default function ShippedGoods({ navigation }) {
     let itemSend = item;
     itemSend.status = 'Đã giao';
     itemSend.list_image_to_of_shipper = listURLImage;
+    itemSend.addressToOfShipper = locationShipper;
     const resOrder = await axiosClient.put('/gotruck/ordershipper/receivegoods', itemSend);
     const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + user.phone);
     dispatch(LoginSuccess(userLogin));
     setCheckUpload(false);
-    socketClient.emit("shipper_completed",resOrder);
+    socketClient.emit('shipper_completed', resOrder);
     navigation.navigate('FinishPage', {
       item: resOrder,
     });
+  };
+
+  const removeImage = (uri) => {
+    const newListImage = listImages;
+    const newListImageSend = listImageSends;
+
+    const index = listImages.indexOf(uri);
+    if (index > -1) {
+      newListImage.splice(index, 1);
+      newListImageSend.splice(index, 1);
+    }
+    setListImages([...newListImage]);
+    setListImageSend([...newListImageSend]);
   };
 
   const renderRowImage = (arr, listImages = [], column = 3) => {
@@ -90,6 +104,17 @@ export default function ShippedGoods({ navigation }) {
           {arr.map((e, i) => (
             <View style={{ width: '36%' }} key={i}>
               <Image source={{ uri: e }} style={styles.itemImage} />
+              <TouchableOpacity
+                style={styles.removeImage}
+                onPress={() => {
+                  removeImage(e);
+                }}
+              >
+                <Image
+                  source={require('../../../../assets/images/close.png')}
+                  style={{ width: 20, height: 20 }}
+                />
+              </TouchableOpacity>
             </View>
           ))}
           {arr[arr.length - 1] == listImages[listImages.length - 1] && arr.length < column ? (
@@ -127,8 +152,7 @@ export default function ShippedGoods({ navigation }) {
             )}
           </ScrollView>
           <View style={{ alignItems: 'center' }}>
-            {/* {listImages.length > 0 ? ( */}
-            {listImages.length == 0 ? (
+            {listImages.length > 0 ? (
               <MyButton
                 type={'large'}
                 btnColor={stylesGlobal.mainGreen}

@@ -21,6 +21,13 @@ const styles = StyleSheet.create({
     height: 100,
     borderWidth: 1,
   },
+  removeImage: {
+    width: 20,
+    height: 20,
+    position: 'absolute',
+    left: 88,
+    top: -8,
+  },
 });
 
 export default styles;

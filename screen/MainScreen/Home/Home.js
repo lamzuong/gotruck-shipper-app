@@ -15,6 +15,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Dimensions,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -77,14 +78,6 @@ export default function Home({ navigation, route }) {
     longitudeDelta: LONGITUDE_DELTA,
   };
 
-  //Test
-  // let INITIAL_POSITION = {
-  //   latitude: 10.820685,
-  //   longitude: 106.687631,
-  //   latitudeDelta: LATITUDE_DELTA,
-  //   longitudeDelta: LONGITUDE_DELTA,
-  // };
-
   const edgePaddingValue = 70;
 
   const edgePadding = {
@@ -114,6 +107,7 @@ export default function Home({ navigation, route }) {
       const resultRoute = await getRouteTwoLocation(locationShipper, data.from_address);
       const distanceTwoLocation = resultRoute?.result?.routes[0]?.distance?.value || -1;
       const distanceReceiveOrder = await axiosClient.get('gotruck/ordershipper/distancereceive');
+
       if (distanceTwoLocation >= 0 && distanceReceiveOrder.distance_receive_order) {
         const resultExpected = await getRouteTwoLocation(addressExpected, data.to_address);
         const distanceExpected = resultExpected?.result?.routes[0]?.distance?.value;
@@ -617,6 +611,16 @@ export default function Home({ navigation, route }) {
           extraMarginTop={20}
         />
       )}
+
+      {/* <TouchableOpacity
+        style={styles.openGGMap}
+        onPress={() => {
+          Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${10.823},${106.68672}`);
+        }}
+      >
+        <Entypo name="direction" size={30} color="white" />
+      </TouchableOpacity> */}
+
       {showModal && (
         <View style={styles.centeredView}>
           <View style={styles.close}>

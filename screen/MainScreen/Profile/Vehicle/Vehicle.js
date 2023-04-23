@@ -25,13 +25,30 @@ export default function Vehicle({ navigation }) {
   const truck = user.infoAllTruck;
 
   const handleSetDefault = async () => {
-    const res = await axiosClient.put('gotruck/profileshipper/vehicle', {
-      id_shipper: user._id,
-      name: item.name,
-    });
-    const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + user.phone);
-    dispatch(LoginSuccess(userLogin));
-    setModalVisible(false);
+    Alert.alert(
+      'Thông báo',
+      'Sau khi thay đổi phương tiện mặc định, bạn cần phải đăng nhập lại',
+      [
+        {
+          text: 'Hủy',
+          onPress: () => {
+            setModalVisible(false);
+          },
+          style: 'cancel',
+        },
+        {
+          text: 'OK',
+          onPress: async () => {
+            const res = await axiosClient.put('gotruck/profileshipper/vehicle', {
+              id_shipper: user._id,
+              name: item.name,
+            });
+            setModalVisible(false);
+            navigation.navigate('Login');
+          },
+        },
+      ],
+    );
   };
 
   const deleteVehicle = () => {
@@ -135,9 +152,8 @@ export default function Vehicle({ navigation }) {
         <ButtonAdd
           action={() => {
             if (truck.length >= 5) {
-              Alert.alert("Thông báo","Bạn chỉ được đăng kí tối đa 5 phương tiện")
-            }
-            else{
+              Alert.alert('Thông báo', 'Bạn chỉ được đăng kí tối đa 5 phương tiện');
+            } else {
               navigation.navigate('FormVehicle');
             }
           }}
