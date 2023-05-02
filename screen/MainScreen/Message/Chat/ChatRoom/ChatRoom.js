@@ -148,7 +148,7 @@ export default function ChatRoom({ route }) {
               </>
             );
           }}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item._id}
         />
         <View style={styles.viewInput}>
           <View style={styles.input}>
