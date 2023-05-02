@@ -22,18 +22,20 @@ export default function FormVehicle() {
   const [valueTruck, setValueTruck] = useState('');
   const [itemsTruck, setItemsTruck] = useState([]);
 
-  const [nameTruck, setNameTruck] = useState('Suzuki Carry Truck');
+  const [nameTruck, setNameTruck] = useState('');
   const [validNameTruck, setValidNameTruck] = useState(false);
-  const [numberTruck, setNumberTruck] = useState('59-M1.12345');
+  const [numberTruck, setNumberTruck] = useState('');
   const [validNumberTruck, setValidNumberTruck] = useState(false);
 
   const [listImages, setListImages] = useState([]);
   const [listImageSends, setListImageSend] = useState([]);
+  const [listImagesVehicleRegistration, setListImagesVehicleRegistration] = useState([]);
+  const [listImageSendsVehicleRegistration, setListImageSendVehicleRegistration] = useState([]);
   const [checkUpload, setCheckUpload] = useState(false);
   const [trucksType, setTrucksType] = useState([]);
   const { user, dispatch } = useContext(AuthContext);
 
-  const checkValid = () => true; // validNameTruck && validNumberTruck;
+  const checkValid = () => validNameTruck && validNumberTruck;
 
   const navigation = useNavigation();
 
@@ -58,10 +60,32 @@ export default function FormVehicle() {
       setListImageSend([...listImageSends, result.assets[0]]);
     }
   };
-  const handleSendRequest = async () => {
-    setCheckUpload(true);
-    let listURLImage = [];
-    for (let i = 0; i < listImageSends.length; i++) {
+
+  const openCamera2 = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (permissionResult.granted === false) {
+      Alert.alert('Thông báo', 'Bạn đã từ chối cấp quyền truy cập máy ảnh', [
+        {
+          text: 'Hủy',
+          onPress: () => null,
+          style: 'cancel',
+        },
+        { text: 'Mở cài đặt', onPress: () => Linking.openSettings() },
+      ]);
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      base64: true,
+    });
+    if (!result.canceled) {
+      setListImagesVehicleRegistration([...listImagesVehicleRegistration, result.assets[0].uri]);
+      setListImageSendVehicleRegistration([...listImageSendsVehicleRegistration, result.assets[0]]);
+    }
+  };
+
+  const uploadImage = async (list) => {
+    let listTemp = [];
+    for (let i = 0; i < list.length; i++) {
       const blob = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.onload = function () {
@@ -71,7 +95,7 @@ export default function FormVehicle() {
           reject(new TypeError('Network request failed'));
         };
         xhr.responseType = 'blob';
-        xhr.open('GET', listImageSends[i].uri, true);
+        xhr.open('GET', list[i].uri, true);
         xhr.send(null);
       });
 
@@ -80,9 +104,16 @@ export default function FormVehicle() {
       // We're done with the blob, close and release it
       blob.close();
       const temp = await snapshot.ref.getDownloadURL();
-      listURLImage.push(temp);
+      listTemp.push(temp);
     }
-    //api add
+    return listTemp;
+  };
+
+  const handleSendRequest = async () => {
+    setCheckUpload(true);
+    let listURLImage = await uploadImage(listImageSends);
+    let listURLImageVehicleRegistration = await uploadImage(listImageSendsVehicleRegistration);
+    // api add
     const typeTruckTemp = trucksType.find((item) => item.name === valueTruck);
     const newTruck = {
       license_plate: numberTruck.trim(),
@@ -93,6 +124,7 @@ export default function FormVehicle() {
       status: 'Chưa duyệt',
       default: false,
       deleted: false,
+      list_vehicle_registration: listURLImageVehicleRegistration,
     };
     const resTruck = await axiosClient.post('/gotruck/profileshipper/vehicle', newTruck);
     if (resTruck.isExist) {
@@ -119,6 +151,19 @@ export default function FormVehicle() {
     setListImageSend([...newListImageSend]);
   };
 
+  const removeImage2 = (uri) => {
+    const newListImage = listImagesVehicleRegistration;
+    const newListImageSend = listImageSendsVehicleRegistration;
+
+    const index = listImagesVehicleRegistration.indexOf(uri);
+    if (index > -1) {
+      newListImage.splice(index, 1);
+      newListImageSend.splice(index, 1);
+    }
+    setListImagesVehicleRegistration([...newListImage]);
+    setListImageSendVehicleRegistration([...newListImageSend]);
+  };
+
   useEffect(() => {
     const getTrucksType = async () => {
       const res = await axiosClient.get('/gotruck/transportprice/trucktype');
@@ -141,7 +186,7 @@ export default function FormVehicle() {
       <View>
         <View style={{ flexDirection: 'row', marginVertical: 10 }}>
           {arr.map((e, i) => (
-            <View style={{ width: '36%'}} key={i}>
+            <View style={{ width: '36%' }} key={i}>
               <Image source={{ uri: e }} style={styles.itemImage} />
               <TouchableOpacity
                 style={styles.removeImage}
@@ -167,6 +212,37 @@ export default function FormVehicle() {
     );
   };
 
+  const renderRowImage2 = (arr, listImages = [], column = 3) => {
+    return (
+      <View>
+        <View style={{ flexDirection: 'row', marginVertical: 10 }}>
+          {arr.map((e, i) => (
+            <View style={{ width: '36%' }} key={i}>
+              <Image source={{ uri: e }} style={styles.itemImage} />
+              <TouchableOpacity
+                style={styles.removeImage}
+                onPress={() => {
+                  removeImage2(e);
+                }}
+              >
+                <Image
+                  source={require('../../../../../assets/images/close.png')}
+                  style={{ width: 20, height: 20 }}
+                />
+              </TouchableOpacity>
+            </View>
+          ))}
+          {arr[arr.length - 1] == listImages[listImages.length - 1] && arr.length < column ? (
+            <ButtonAdd action={() => openCamera2()} />
+          ) : null}
+        </View>
+        {arr[arr.length - 1] == listImages[listImages.length - 1] && arr.length == column ? (
+          <ButtonAdd action={() => openCamera2()} />
+        ) : null}
+      </View>
+    );
+  };
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {checkUpload ? (
@@ -187,7 +263,7 @@ export default function FormVehicle() {
               regex={/^(([1-9]{2}|([2-9][0-9]))-([A-Z][1-9]).(\d{4}|\d{5}))$/}
               error={'Biển số xe không hợp lệ'}
               valid={setValidNumberTruck}
-              initialValue={numberTruck}
+              // initialValue={numberTruck}
             />
           </View>
           <View style={styles.viewInput}>
@@ -199,7 +275,7 @@ export default function FormVehicle() {
               regex={/^.+$/}
               error={'Tên xe không được để trống'}
               valid={setValidNameTruck}
-              initialValue={nameTruck}
+              // initialValue={nameTruck}
             />
           </View>
 
@@ -227,7 +303,7 @@ export default function FormVehicle() {
           </View>
 
           <View style={styles.viewInputImage}>
-            <Text>Hình ảnh xe và giấy tờ xe</Text>
+            <Text>Hình ảnh xe (tối thiểu 3 ảnh)</Text>
             {listImages.length != 0 ? (
               <>
                 {sliceIntoChunks(listImages, 3).map((e, i) => (
@@ -239,8 +315,21 @@ export default function FormVehicle() {
             )}
           </View>
 
+          <View style={styles.viewInputImage}>
+            <Text>Hình ảnh bằng lái và cmnd/cccd (tối thiểu 4 ảnh)</Text>
+            {listImagesVehicleRegistration.length != 0 ? (
+              <>
+                {sliceIntoChunks(listImagesVehicleRegistration, 3).map((e, i) => (
+                  <View key={i}>{renderRowImage2(e, listImagesVehicleRegistration, 3)}</View>
+                ))}
+              </>
+            ) : (
+              <ButtonAdd action={() => openCamera2()} />
+            )}
+          </View>
+
           <View style={{ marginTop: 20, marginBottom: 30 }}>
-            {checkValid() && listImages.length >= 4 ? (
+            {checkValid() && listImages.length >= 3 && listImagesVehicleRegistration.length >= 4 ? (
               <MyButton
                 btnColor={stylesGlobal.mainGreen}
                 type={'large'}
