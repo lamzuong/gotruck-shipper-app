@@ -31,7 +31,7 @@ export default function ChatRoom({ route }) {
     if (item?.id_customer?.phone) {
       Linking.openURL(`tel:${item.id_customer.phone}`);
     } else {
-      Alert.alert("Thông báo",'Không thể gọi cho số điện thoại này');
+      Alert.alert('Thông báo', 'Không thể gọi cho số điện thoại này');
     }
   };
 
@@ -94,13 +94,12 @@ export default function ChatRoom({ route }) {
     return () => backHandler.remove();
   }, []);
   //------------------------------
-
   useEffect(() => {
     getAllMessage();
-    socketClient.off(user._id + 'message');
     socketClient.on(user._id + 'message', (data) => {
       getAllMessage();
     });
+    return () => socketClient.off(user._id + 'message');
   }, []);
 
   return (
@@ -150,24 +149,26 @@ export default function ChatRoom({ route }) {
           }}
           keyExtractor={(item) => item._id}
         />
-        <View style={styles.viewInput}>
-          <View style={styles.input}>
-            <TextInput
-              value={mess}
-              onChangeText={(t) => setMess(t)}
-              style={styles.txtInput}
-              placeholder="Nhập tin nhắn..."
-              numberOfLines={99}
+        {!item.disable && (
+          <View style={styles.viewInput}>
+            <View style={styles.input}>
+              <TextInput
+                value={mess}
+                onChangeText={(t) => setMess(t)}
+                style={styles.txtInput}
+                placeholder="Nhập tin nhắn..."
+                numberOfLines={99}
+              />
+            </View>
+            <Ionicons
+              name="send"
+              size={30}
+              color={stylesGlobal.mainGreen}
+              style={styles.iconSend}
+              onPress={() => handleMessage()}
             />
           </View>
-          <Ionicons
-            name="send"
-            size={30}
-            color={stylesGlobal.mainGreen}
-            style={styles.iconSend}
-            onPress={() => handleMessage()}
-          />
-        </View>
+        )}
       </View>
     </>
   );

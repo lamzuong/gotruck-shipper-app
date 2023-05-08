@@ -20,6 +20,8 @@ export default function NewOrderDetail({ setShowModal, item, show, received, loc
     const resConversation = await axiosClient.post('gotruck/conversation/', {
       id_customer: item.id_customer,
       id_shipper: user._id,
+      id_form: item?._id,
+      form_model: 'Order',
     });
     socketClient.emit('send_message', { id_receive: item.id_customer });
     navigation.navigate('ChatRoom', { item: resConversation });
@@ -30,22 +32,18 @@ export default function NewOrderDetail({ setShowModal, item, show, received, loc
     const distanceTwoLocation = resultRoute?.result?.routes[0]?.distance?.value || -1;
 
     if (distanceTwoLocation && distanceTwoLocation > 1000) {
-      Alert.alert(
-        'Xác nhận',
-        'Vị trí của bạn khác vị trí giao hàng!\nChúng tôi sẽ ghi nhận và thông báo cho khách hàng',
-        [
-          {
-            text: 'Hủy',
-            onPress: () => null,
-            style: 'cancel',
-          },
-          {
-            text: 'OK',
-            onPress: () =>
-              navigation.navigate('ShippedGoods', { item: item, locationShipper: locationShipper }),
-          },
-        ],
-      );
+      Alert.alert('Xác nhận', 'Vị trí của bạn khác vị trí giao hàng!\nBạn vẫn muốn tiếp tục', [
+        {
+          text: 'Hủy',
+          onPress: () => null,
+          style: 'cancel',
+        },
+        {
+          text: 'OK',
+          onPress: () =>
+            navigation.navigate('ShippedGoods', { item: item, locationShipper: locationShipper }),
+        },
+      ]);
     } else {
       navigation.navigate('ShippedGoods', { item: item, locationShipper: locationShipper });
     }
@@ -95,14 +93,14 @@ export default function NewOrderDetail({ setShowModal, item, show, received, loc
             <Text style={styles.label}>Người nhận</Text>
           </View>
           <View style={styles.inline}>
-            <Feather
+            {/* <Feather
               name="message-square"
               size={26}
               color="black"
               onPress={() => {
                 handleMessage();
               }}
-            />
+            /> */}
             <View style={{ width: 10 }}></View>
             <Feather
               name="phone"

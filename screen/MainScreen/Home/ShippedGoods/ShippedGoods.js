@@ -75,6 +75,7 @@ export default function ShippedGoods({ navigation }) {
     itemSend.list_image_to_of_shipper = listURLImage;
     itemSend.addressToOfShipper = locationShipper;
     const resOrder = await axiosClient.put('/gotruck/ordershipper/receivegoods', itemSend);
+    await axiosClient.put('/gotruck/conversation/disable', itemSend);
     const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + user.phone);
     dispatch(LoginSuccess(userLogin));
     setCheckUpload(false);

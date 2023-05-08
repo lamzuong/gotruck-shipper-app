@@ -111,7 +111,7 @@ export default function Home({ navigation, route }) {
       if (distanceTwoLocation >= 0 && distanceReceiveOrder.distance_receive_order) {
         const resultExpected = await getRouteTwoLocation(addressExpected, data.to_address);
         const distanceExpected = resultExpected?.result?.routes[0]?.distance?.value;
-        if (distanceExpected >= 0 && distanceExpected <= 5000) {
+        if (distanceExpected >= 0 && distanceExpected <= 5000000) {
           data.expected = true;
         }
         setListOrderNotify((prev) => {
@@ -170,13 +170,14 @@ export default function Home({ navigation, route }) {
           const res = await axiosClient.put('gotruck/ordershipper/', updateNewOrder);
           if (res.status === 'Đã nhận' && res.shipper.id_shipper === user._id) {
             socketClient.off(getTruckDefault());
-            socketClient.off(getTruckDefault() + 'cancel');
             setOrderItem((prev) => route.params.itemOrder);
             setHaveOrder(true);
-            const resExpectedAddress = await axiosClient.put(
-              'gotruck/ordershipper/expectedaddress',
-              user,
-            );
+            if (addressExpected) {
+              const resExpectedAddress = await axiosClient.put(
+                'gotruck/ordershipper/expectedaddress',
+                user,
+              );
+            }
             const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + user.phone);
             dispatch(LoginSuccess(userLogin));
             setAddressExpected('');
@@ -190,7 +191,7 @@ export default function Home({ navigation, route }) {
           } else {
             Alert.alert('Thông báo', 'Đơn hàng đã được nhận bởi shipper khác');
           }
-        }.call(this));
+        }).call(this);
       } else if (route.params.receivedGoods) {
         stopZoomRef.current = false;
         setHeightSwip(120);
@@ -213,7 +214,7 @@ export default function Home({ navigation, route }) {
               await AsyncStorage.multiRemove(asyncStorageKeys);
             }
           }
-        }.call(this));
+        }).call(this);
         stopZoomRef.current = false;
       } else if (route.params.expected_address) {
         setAddressExpected(route.params.expected_address);
@@ -250,21 +251,17 @@ export default function Home({ navigation, route }) {
   const onSocketCancel = () => {
     socketClient.off(getTruckDefault() + 'cancel');
     socketClient.on(getTruckDefault() + 'cancel', async (data) => {
-      if (data.status === 'Đã hủy') {
-        setListOrderNotify((prev) => {
-          const index = prev.findIndex((e) => e.id_order === data.id_order);
-          if (index > -1) {
-            prev.splice(index, 1);
-          }
-          return [...prev];
-        });
+      if (data.status === 'Đã hủy' && data?.shipper?.id_shipper) {
+        Alert.alert('Thông báo', 'Đơn hàng đã bị hủy bởi khách hàng');
+        setReason('');
+        setValid(false);
+        setShowModal(false);
+        setShowMessage(false);
+        setListOrderNotify([]);
+        setHaveOrder(false);
+        onSocketReceiveOrder();
+        await AsyncStorage.clear();
       } else {
-        data.status = 'Đã hủy';
-        data.reason_cancel = {
-          user_cancel: 'AutoDelete',
-          content: 'Đơn hàng trong 15 phút không ai nhận',
-        };
-        const resOrderCancel = await axiosClient.put('gotruck/ordershipper/', data);
         setListOrderNotify((prev) => {
           const index = prev.findIndex((e) => e.id_order === data.id_order);
           if (index > -1) {
@@ -339,24 +336,47 @@ export default function Home({ navigation, route }) {
           setRoutePolyline(routePolyTemp);
         }
       }
-    }.call(this));
+    }).call(this);
   }, [locationShipper]);
 
   // useEffect(() => {
   //   const timeId = setInterval(async () => {
   //     const location = await getLocationCurrentOfUser();
-  //     const orderCurrentStr = await AsyncStorage.getItem('orderCurrent');
-  //     const orderCurrent = JSON.parse(orderCurrentStr || '{}');
-  //     socketClient.emit('location_shipper', {
-  //       id_order: orderCurrent.id_order || '',
-  //       locationShipper: location,
-  //     });
+  //     const shipperNew = user;
+  //     shipperNew.current_address = location;
+  //     await axiosClient.put('gotruck/ordershipper/location', shipperNew);
   //     setLocationShipper(location);
   //   }, 10000);
   //   return () => {
   //     clearInterval(timeId);
   //   };
   // }, []);
+
+  useEffect(() => {
+    const getOrderCurrent = async () => {
+      const resOrderCurrent = await axiosClient.get(
+        '/gotruck/ordershipper/ordercurrent/' + user._id,
+      );
+      if (!resOrderCurrent.isNotFound) {
+        socketClient.off(getTruckDefault());
+        setOrderItem(resOrderCurrent);
+        setHaveOrder(true);
+        const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + user.phone);
+        dispatch(LoginSuccess(userLogin));
+        setAddressExpected('');
+        handleDirection(resOrderCurrent.from_address);
+        await AsyncStorage.setItem('orderCurrent', JSON.stringify(resOrderCurrent));
+        setStatus(true);
+        if (resOrderCurrent.status === 'Đang giao') {
+          stopZoomRef.current = false;
+          setHeightSwip(120);
+          setReceived(true);
+          handleDirection(resOrderCurrent.to_address);
+        }
+      }
+    };
+    getOrderCurrent();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -501,7 +521,14 @@ export default function Home({ navigation, route }) {
                           styles.itemMess,
                           { backgroundColor: `${e.expected ? stylesGlobal.lightGreen : ''}` },
                         ]}
-                        onPress={() => {
+                        onPress={async () => {
+                          const resBlock = await axiosClient.get(
+                            'gotruck/authshipper/block/' + user._id,
+                          );
+                          if (resBlock.block) {
+                            Alert.alert('Thông báo', 'Tài bạn của bạn đã bị khóa');
+                            return;
+                          }
                           setShowMessage(false);
                           navigation.navigate('OrderDetailForNotification', { item: e });
                         }}
@@ -551,13 +578,18 @@ export default function Home({ navigation, route }) {
         ) : (
           <TouchableOpacity
             style={[styles.btnPower, { backgroundColor: 'red' }]}
-            onPress={() => {
+            onPress={async () => {
               if (user.balance <= -200000) {
                 Alert.alert('Thông báo', 'Vui lòng nạp tiền vào vi GoTruck để tiếp tục giao hàng', [
                   { text: 'OK', onPress: () => {} },
                 ]);
               } else {
-                setStatus(!status);
+                const resBlock = await axiosClient.get('gotruck/authshipper/block/' + user._id);
+                if (resBlock.block) {
+                  Alert.alert('Thông báo', 'Tài bạn của bạn đã bị khóa');
+                } else {
+                  setStatus(!status);
+                }
               }
             }}
           >

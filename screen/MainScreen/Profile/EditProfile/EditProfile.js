@@ -79,6 +79,13 @@ export default function EditProfile({ navigation }) {
   };
 
   const updateProfile1 = async () => {
+    const resOrderCurrent = await axiosClient.get('/gotruck/ordershipper/ordercurrent/' + user._id);
+    if (!resOrderCurrent.isNotFound) {
+      Alert.alert('Thông báo', 'Trong quá trình giao hàng không thể thay đổi số điện thoại');
+      setModalVisible(false);
+      return;
+    }
+
     if (phone != phoneInit) {
       Alert.alert(
         'Xác nhận',

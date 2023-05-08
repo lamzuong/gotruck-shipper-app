@@ -2,7 +2,7 @@ import { Entypo } from '@expo/vector-icons';
 
 const options = [
   {
-    title: 'Trợ giúp',
+    title: 'Điều khoản & chính sách',
     navigateTo: 'Help',
     icon: <Entypo name="help-with-circle" size={24} color="black" />,
   },

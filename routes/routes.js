@@ -106,7 +106,7 @@ const publicRoutes = [
     name: 'Help',
     component: Help,
     header: true,
-    title: 'Trợ giúp',
+    title: 'Điều khoản & chính sách',
     animation: 'slide_from_right',
   },
 

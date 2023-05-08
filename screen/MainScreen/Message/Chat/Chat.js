@@ -6,7 +6,7 @@ import { Octicons } from '@expo/vector-icons';
 import ReadMore from 'react-native-read-more-text';
 import { AuthContext } from '../../../../context/AuthContext';
 import axiosClient from '../../../../api/axiosClient';
-import {socketClient} from '../../../../global/socket';
+import { socketClient } from '../../../../global/socket';
 import { useIsFocused, useRoute } from '@react-navigation/native';
 
 const mess = [
@@ -55,10 +55,10 @@ export default function Chat({ navigation }) {
 
   useEffect(() => {
     renderUI();
-    socketClient.off(user._id + 'message');
     socketClient.on(user._id + 'message', (data) => {
       renderUI();
     });
+    return () => socketClient.off(user._id + 'message');
   }, [isFocus]);
 
   return (
@@ -81,14 +81,24 @@ export default function Chat({ navigation }) {
               />
               <View style={styles.itemChat.rightItem}>
                 <Text
-                 style={
-                  // item.message.read
-                  //   ?
-                  styles.itemChat.name.read
-                  // : styles.itemChat.name.unread
-                }
-              >
-                {item.id_customer.name}
+                  style={
+                    // item.message.read
+                    //   ?
+                    styles.itemChat.name.read
+                    // : styles.itemChat.name.unread
+                  }
+                >
+                  {item.id_form.id_order}
+                </Text>
+                <Text
+                  style={
+                    // item.message.read
+                    //   ?
+                    styles.itemChat.name.read
+                    // : styles.itemChat.name.unread
+                  }
+                >
+                  {item.id_customer.name}
                 </Text>
                 <View style={styles.itemChat.viewMessage}>
                   <ReadMore

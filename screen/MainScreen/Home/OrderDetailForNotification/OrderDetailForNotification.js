@@ -19,6 +19,8 @@ export default function OrderDetailForNotification() {
     const resConversation = await axiosClient.post('gotruck/conversation/', {
       id_customer: item.id_customer,
       id_shipper: user._id,
+      id_form: item?._id,
+      form_model: 'Order',
     });
     socketClient.emit('send_message', { id_receive: item.id_customer });
     navigation.navigate('ChatRoom', { item: resConversation });
@@ -26,7 +28,7 @@ export default function OrderDetailForNotification() {
 
   const hanleReceiveOrder = () => {
     if (user.balance - item.total * (item.fee / 100) < -200000) {
-      Alert.alert("Thông báo",'Số dư ví GoTruck không đủ, vui lòng nạp thêm tiền để nhận đơn');
+      Alert.alert('Thông báo', 'Số dư ví GoTruck không đủ, vui lòng nạp thêm tiền để nhận đơn');
     } else {
       navigation.navigate('Home', { checkHaveOrder: true, itemOrder: item });
     }
@@ -77,14 +79,14 @@ export default function OrderDetailForNotification() {
             <Text style={styles.label}>Người nhận</Text>
           </View>
           <View style={styles.inline}>
-            <Feather
+            {/* <Feather
               name="message-square"
               size={26}
               color="black"
               onPress={() => {
                 handleMessage();
               }}
-            />
+            /> */}
             <View style={{ width: 10 }}></View>
             <Feather
               name="phone"

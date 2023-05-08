@@ -17,7 +17,6 @@ export default function Info({ navigation }) {
   useEffect(() => {
     const getNotify = async () => {
       const res = await axiosClient.get('gotruck/notify/shipper/' + user._id);
-      console.log(res.length);
       setData(res);
     };
     getNotify();

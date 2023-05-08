@@ -33,15 +33,23 @@ export default function Withdraw({ navigation }) {
 
   const handleWithdraw = async () => {
     if (money < 100000) {
-      Alert.alert("Thông báo",'Số tiền rút tối thiểu là 100,000 đồng');
+      Alert.alert('Thông báo', 'Số tiền rút tối thiểu là 100,000 đồng');
       return;
     } else if (money > 10000000) {
-      Alert.alert("Thông báo",'Số tiền rút tối đa là 10,000,000 đồng');
+      Alert.alert('Thông báo', 'Số tiền rút tối đa là 10,000,000 đồng');
       return;
     }
     const bankSelected = listBank.find((item) => item.name_short === valueBank);
 
-    if (user.balance >= money) {
+    const resBlock = await axiosClient.get('gotruck/authshipper/block/' + user._id);
+    if (resBlock.block) {
+      Alert.alert('Thông báo', 'Tài bạn của bạn đã bị khóa');
+      return;
+    }
+
+    const resOrderCurrent = await axiosClient.get('/gotruck/ordershipper/ordercurrent/' + user._id);
+    const feeOrder = resOrderCurrent.total * (resOrderCurrent.fee / 100) || 0;
+    if (user.balance >= money && user.balance >= feeOrder) {
       const withdrawTemp = {
         id_shipper: user._id,
         money: money,
@@ -51,13 +59,17 @@ export default function Withdraw({ navigation }) {
         status: 'Đang xử lý',
         type: 'Rút tiền',
       };
-      
+
       const resWithdraw = await axiosClient.post('gotruck/bank/withdraw', withdrawTemp);
       const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + user.phone);
       dispatch(LoginSuccess(userLogin));
       navigation.navigate('WithdrawSuccess');
     } else {
-      Alert.alert("Thông báo",'Số dư ví GoTruck của bạn không đủ');
+      if (user.balance >= feeOrder) {
+        Alert.alert('Thông báo', 'Số dư ví GoTruck của bạn không đủ');
+      } else {
+        Alert.alert('Thông báo', 'Số dư ví GoTruck không đủ để trừ phí đơn hàng hiện tại');
+      }
     }
   };
 
