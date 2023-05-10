@@ -43,8 +43,11 @@ export const getLocationCurrentOfUser = async () => {
 };
 
 export const getRouteTwoLocation = async (origin, destination) => {
+  if (!origin || !destination) {
+    return;
+  }
   const originStr = origin.latitude + ',' + origin.longitude;
-  const destinationStr = destination.latitude + ',' + destination.longitude;
+  const destinationStr = destination?.latitude + ',' + destination?.longitude;
   const mode = 'Car';
   const url = `http://api.map4d.vn/sdk/route?key=${MAP_4D_KEY}&origin=${originStr}&destination=${destinationStr}&mode=${mode}&weighting=${0}`;
   const result = await axiosClient.get(url);

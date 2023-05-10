@@ -45,6 +45,12 @@ export default function ReceiveGoods({ navigation }) {
   };
 
   const handleConfirm = async () => {
+    const resTemp = await axiosClient.get('gotruck/order/order/' + item._id);
+    if (!resTemp.isNotFound && resTemp.status === 'Đã hủy') {
+      Alert.alert('Thông báo', 'Đơn hàng đã bị hủy');
+      navigation.navigate('Home');
+      return;
+    }
     if (item.payer === 'send') {
       Alert.alert(
         'Thông báo',
@@ -141,7 +147,7 @@ export default function ReceiveGoods({ navigation }) {
       ) : (
         <>
           <ScrollView>
-            <Text style={styles.label}>Hình ảnh hàng hóa</Text>
+            <Text style={styles.label}>Hình ảnh hàng hóa khi nhận hàng</Text>
             {listImages.length != 0 ? (
               <>
                 {sliceIntoChunks(listImages, 3).map((e, i) => (

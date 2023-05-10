@@ -38,6 +38,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.compose(stylesGeneral.button),
     right: 10,
     top: 10,
+    backgroundColor: 'red',
   },
   isOnline: {
     position: 'absolute',

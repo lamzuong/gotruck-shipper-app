@@ -42,6 +42,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LoginSuccess } from '../../../context/AuthAction';
 import { formatDateFull } from '../../../global/util';
+import { useNavigation } from '@react-navigation/native';
 
 export default function Home({ navigation, route }) {
   const { dispatch, user, locationNow } = useContext(AuthContext);
@@ -61,7 +62,6 @@ export default function Home({ navigation, route }) {
   const [valid, setValid] = useState(false);
   const [reason, setReason] = useState('');
   const [routePolyline, setRoutePolyline] = useState([]);
-
   const stopZoomRef = useRef(false);
   const mapRef = useRef();
   const swipeUpDownRef = useRef();
@@ -241,7 +241,9 @@ export default function Home({ navigation, route }) {
     onSocketCancel();
     socketClient.off(getTruckDefault() + 'cancel_received');
     socketClient.on(getTruckDefault() + 'cancel_received', async (data) => {
-      Alert.alert('Thông báo', 'Đơn hàng đã bị hủy bởi khách hàng');
+      Alert.alert('Thông báo', 'Đơn hàng đã bị hủy bởi khách hàng', [
+        { text: 'OK', onPress: () => navigation.navigate('Home') },
+      ]);
       setReason('');
       setValid(false);
       setShowModal(false);
@@ -257,7 +259,9 @@ export default function Home({ navigation, route }) {
     socketClient.off(getTruckDefault() + 'cancel');
     socketClient.on(getTruckDefault() + 'cancel', async (data) => {
       if (data.status === 'Đã hủy' && data?.shipper?.id_shipper) {
-        Alert.alert('Thông báo', 'Đơn hàng đã bị hủy bởi khách hàng');
+        Alert.alert('Thông báo', 'Đơn hàng đã bị hủy bởi khách hàng', [
+          { text: 'OK', onPress: () => navigation.navigate('Home') },
+        ]);
         setReason('');
         setValid(false);
         setShowModal(false);
@@ -290,7 +294,9 @@ export default function Home({ navigation, route }) {
         socketClient.emit('shipper_cancel', resOrderCancel);
       }
       if (resOrderCancel.reason_cancel.user_cancel === 'Customer') {
-        Alert.alert('Thông báo', 'Đơn hàng đã bị hủy bởi khách hàng');
+        Alert.alert('Thông báo', 'Đơn hàng đã bị hủy bởi khách hàng', [
+          { text: 'OK', onPress: () => navigation.navigate('Home') },
+        ]);
       }
       setReason('');
       setValid(false);
@@ -582,7 +588,7 @@ export default function Home({ navigation, route }) {
           </View>
         ) : (
           <TouchableOpacity
-            style={[styles.btnPower, { backgroundColor: 'red' }]}
+            style={[styles.btnPower, { backgroundColor: '#04AF46' }]}
             onPress={async () => {
               if (user.balance <= -200000) {
                 Alert.alert('Thông báo', 'Vui lòng nạp tiền vào vi GoTruck để tiếp tục giao hàng', [

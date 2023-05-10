@@ -141,7 +141,7 @@ export default function ShippedGoods({ navigation }) {
       ) : (
         <>
           <ScrollView>
-            <Text style={styles.label}>Hình ảnh hàng hóa</Text>
+            <Text style={styles.label}>Hình ảnh hàng hóa khi giao hàng</Text>
             {listImages.length != 0 ? (
               <>
                 {sliceIntoChunks(listImages, 3).map((e, i) => (
