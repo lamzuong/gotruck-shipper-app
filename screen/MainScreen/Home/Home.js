@@ -108,11 +108,16 @@ export default function Home({ navigation, route }) {
       const distanceTwoLocation = resultRoute?.result?.routes[0]?.distance?.value || -1;
       const distanceReceiveOrder = await axiosClient.get('gotruck/ordershipper/distancereceive');
 
-      if (distanceTwoLocation >= 0 && distanceReceiveOrder.distance_receive_order) {
-        const resultExpected = await getRouteTwoLocation(addressExpected, data.to_address);
-        const distanceExpected = resultExpected?.result?.routes[0]?.distance?.value;
-        if (distanceExpected >= 0 && distanceExpected <= 5000000) {
-          data.expected = true;
+      if (
+        distanceTwoLocation >= 0 &&
+        distanceTwoLocation <= distanceReceiveOrder.distance_receive_order
+      ) {
+        if (addressExpected) {
+          const resultExpected = await getRouteTwoLocation(addressExpected, data.to_address);
+          const distanceExpected = resultExpected?.result?.routes[0]?.distance?.value;
+          if (distanceExpected >= 0 && distanceExpected <= 5000) {
+            data.expected = true;
+          }
         }
         setListOrderNotify((prev) => {
           return [...prev, data];

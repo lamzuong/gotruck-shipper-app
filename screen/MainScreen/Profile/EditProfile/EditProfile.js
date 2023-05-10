@@ -62,7 +62,7 @@ export default function EditProfile({ navigation }) {
     try {
       const res = await axiosClient.get('/gotruck/authshipper/user/' + phone);
       if (res.phone) {
-        customAlert('Thông báo', 'Số điện thoại này đã được sử dụng!', null);
+        customAlert('Thông báo', 'Số điện thoại này đã được sử dụng bởi tài xế khác!', null);
       } else {
         const phoneProvider = new firebase.auth.PhoneAuthProvider();
         phoneProvider
@@ -71,9 +71,17 @@ export default function EditProfile({ navigation }) {
             setVerificationId(result);
             nextScreen();
           })
-          .catch((error) => {});
+          .catch((error) => {
+            console.log(error?.code);
+            if (error.code === 'auth/too-many-requests') {
+              Alert.alert(
+                'Thông báo',
+                'Bạn đã yêu cầu gửi mã OTP quá nhiều lần\nVui lòng thử lại sau',
+              );
+            }
+          });
       }
-    } catch (error) {
+    } catch (error2) {
       customAlert('Thông báo', 'Lỗi không xác định', null);
     }
   };
@@ -137,7 +145,14 @@ export default function EditProfile({ navigation }) {
           }
         })
         .catch((err) => {
-          Alert.alert('Thông báo', 'Mã OTP không chính xác');
+          console.log(err?.code);
+          if (err?.code === 'auth/invalid-verification-code') {
+            Alert.alert('Thông báo', 'Mã OTP không chính xác');
+          } else if (err?.code === 'auth/code-expired') {
+            Alert.alert('Thông báo', 'Đã hết hạn nhập mã OTP\nVui lòng xác minh lại');
+          } else {
+            Alert.alert('Thông báo', 'Mã OTP không chính xác');
+          }
         });
     }
   };

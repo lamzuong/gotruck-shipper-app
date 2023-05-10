@@ -23,8 +23,8 @@ export default function Login({ navigation }) {
   const dataTest2 = '123456';
   const [screen, setScreen] = useState(1);
   const [validData, setValidData] = useState(true);
-  const [phone, setPhone] = useState(dataTest);
-  const [codeOTP, setcodeOTP] = useState(dataTest2);
+  const [phone, setPhone] = useState();
+  const [codeOTP, setcodeOTP] = useState();
   const [verificationId, setVerificationId] = useState();
 
   const scrollViewRef = useRef();
@@ -39,10 +39,13 @@ export default function Login({ navigation }) {
     const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + phone);
     const orderList = await axiosClient.get('gotruck/ordershipper/shipper/' + userLogin._id);
     const currentLocation = await getLocationCurrentOfUser();
-    dispatch(LoginSuccess(userLogin));
-    dispatch(SetLocation(currentLocation));
-    dispatch(SetListOrder(orderList));
-    toMainScreen();
+    if (currentLocation) {
+      dispatch(LoginSuccess(userLogin));
+      dispatch(SetLocation(currentLocation));
+      dispatch(SetListOrder(orderList));
+      toMainScreen();
+    }
+    // kết thúc
 
     // try {
     //   const res = await axiosClient.get('/gotruck/authshipper/user/' + phone);
@@ -58,6 +61,13 @@ export default function Login({ navigation }) {
     //           nextScreen();
     //         })
     //         .catch((error) => {
+    //           console.log(error?.code);
+    //           if (error?.code === 'auth/too-many-requests') {
+    //             Alert.alert(
+    //               'Thông báo',
+    //               'Bạn đã yêu cầu gửi mã OTP quá nhiều lần\nVui lòng thử lại sau',
+    //             );
+    //           }
     //         });
     //     } else {
     //       customAlert(
@@ -65,9 +75,9 @@ export default function Login({ navigation }) {
     //         'Tài khoản đang trong quá trình xác thực.\nVui lòng thử lại sau!',
     //         null,
     //       );
-    // }
+    //     }
     //   }
-    // } catch (error) {
+    // } catch (error2) {
     //   customAlert('Thông báo', 'Lỗi không xác định', null);
     // }
   };
@@ -87,14 +97,23 @@ export default function Login({ navigation }) {
               'gotruck/ordershipper/shipper/' + userLogin._id,
             );
             const currentLocation = await getLocationCurrentOfUser();
-            dispatch(LoginSuccess(userLogin));
-            dispatch(SetLocation(currentLocation));
-            dispatch(SetListOrder(orderList));
-            toMainScreen();
+            if (currentLocation) {
+              dispatch(LoginSuccess(userLogin));
+              dispatch(SetLocation(currentLocation));
+              dispatch(SetListOrder(orderList));
+              toMainScreen();
+            }
           }
         })
         .catch((err) => {
-          Alert.alert('Thông báo', 'Mã OTP không chính xác');
+          console.log(err?.code);
+          if (err?.code === 'auth/invalid-verification-code') {
+            Alert.alert('Thông báo', 'Mã OTP không chính xác');
+          } else if (err?.code === 'auth/code-expired') {
+            Alert.alert('Thông báo', 'Đã hết hạn nhập mã OTP\nVui lòng xác minh lại');
+          } else {
+            Alert.alert('Thông báo', 'Lỗi không xác định');
+          }
         });
     }
   };
@@ -158,7 +177,6 @@ export default function Login({ navigation }) {
               width={230}
               value={setPhone}
               valid={setValidData}
-              initialValue={dataTest}
               screen={screen}
             />
           </View>
@@ -171,7 +189,6 @@ export default function Login({ navigation }) {
               width={widthScreen - 60}
               value={setcodeOTP}
               valid={setValidData}
-              initialValue={dataTest2}
               screen={screen}
             />
           </View>

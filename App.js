@@ -3,13 +3,15 @@ import stylesGlobal from './global/stylesGlobal';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, LogBox, StyleSheet, Text, View } from 'react-native';
 
 import { AuthContextProvider } from './context/AuthContext';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+  // LogBox.ignoreAllLogs();
+
   return (
     <AuthContextProvider>
       <NavigationContainer>
@@ -40,7 +42,7 @@ export default function App() {
           })}
         </Stack.Navigator>
       </NavigationContainer>
-     </AuthContextProvider>
+    </AuthContextProvider>
   );
 }
 
