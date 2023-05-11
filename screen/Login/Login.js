@@ -36,15 +36,15 @@ export default function Login({ navigation }) {
 
   const sendVerification = async () => {
     //Login fast
-    // const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + phone);
-    // const orderList = await axiosClient.get('gotruck/ordershipper/shipper/' + userLogin._id);
-    // const currentLocation = await getLocationCurrentOfUser();
-    // if (currentLocation) {
-    //   dispatch(LoginSuccess(userLogin));
-    //   dispatch(SetLocation(currentLocation));
-    //   dispatch(SetListOrder(orderList));
-    //   toMainScreen();
-    // }
+    const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + phone);
+    const orderList = await axiosClient.get('gotruck/ordershipper/shipper/' + userLogin._id);
+    const currentLocation = await getLocationCurrentOfUser();
+    if (currentLocation) {
+      dispatch(LoginSuccess(userLogin));
+      dispatch(SetLocation(currentLocation));
+      dispatch(SetListOrder(orderList));
+      toMainScreen();
+    }
     // kết thúc
 
     try {
