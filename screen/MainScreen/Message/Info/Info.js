@@ -3,7 +3,7 @@ import stylesGlobal from '../../../../global/stylesGlobal';
 
 import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
-import { Entypo, Octicons, FontAwesome } from '@expo/vector-icons';
+import { Ionicons, Octicons, FontAwesome, Entypo, AntDesign, Foundation } from '@expo/vector-icons';
 import ReadMore from 'react-native-read-more-text';
 import { useIsFocused } from '@react-navigation/native';
 import { AuthContext } from '../../../../context/AuthContext';
@@ -48,11 +48,15 @@ export default function Info({ navigation }) {
                   item.type_notify === 'Warning' ? styles.itemChat.deal : styles.itemChat.order
                 }
               >
-                {item.type_notify === 'Warning' ? (
-                  <Entypo name="warning" size={24} color={stylesGlobal.darkOrange} />
-                ) : (
+                 {item.type_notify === 'Discount' ? (
+                  <Ionicons name="md-pricetags" size={24} color={stylesGlobal.darkOrange} />
+                ) : item.type_notify === 'Normal' ? (
+                  <Foundation name="info" size={35} color={stylesGlobal.darkGreen} />
+                ) : item.type_notify === 'Warning' ? (
+                  <Entypo name="warning" size={24} color={'red'} />
+                ) : item.type_notify === 'Order' ? (
                   <FontAwesome name="truck" size={24} color={stylesGlobal.darkGreen} />
-                )}
+                ) : null}
               </View>
 
               <View style={styles.itemChat.rightItem}>

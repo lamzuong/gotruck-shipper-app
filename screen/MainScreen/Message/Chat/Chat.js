@@ -54,11 +54,14 @@ export default function Chat({ navigation }) {
   };
 
   useEffect(() => {
-    renderUI();
-    socketClient.on('message' + String(user._id), (data) => {
+    socketClient.on('message' + user._id, (data) => {
       renderUI();
     });
     return () => socketClient.off('message' + user._id);
+  });
+
+  useEffect(() => {
+    renderUI();
   }, []);
 
   return (

@@ -9,6 +9,7 @@ import { Feather, Foundation, Ionicons, SimpleLineIcons } from '@expo/vector-ico
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axiosClient from '../../../../api/axiosClient';
 import { AuthContext } from '../../../../context/AuthContext';
+import { socketClient } from '../../../../global/socket';
 export default function OrderDetailForNotification() {
   const { user } = useContext(AuthContext);
   const route = useRoute();
@@ -16,6 +17,11 @@ export default function OrderDetailForNotification() {
   const navigation = useNavigation();
 
   const handleMessage = async () => {
+    const resBlock = await axiosClient.get('gotruck/authshipper/block/' + user._id);
+    if (resBlock.block) {
+      Alert.alert('Thông báo', 'Tài bạn của bạn đã bị khóa');
+      return;
+    }
     const resConversation = await axiosClient.post('gotruck/conversation/', {
       id_customer: item.id_customer,
       id_shipper: user._id,
@@ -26,7 +32,12 @@ export default function OrderDetailForNotification() {
     navigation.navigate('ChatRoom', { item: resConversation });
   };
 
-  const hanleReceiveOrder = () => {
+  const hanleReceiveOrder = async () => {
+    const resBlock = await axiosClient.get('gotruck/authshipper/block/' + user._id);
+    if (resBlock.block) {
+      Alert.alert('Thông báo', 'Tài bạn của bạn đã bị khóa');
+      return;
+    }
     if (user.balance - item.total * (item.fee / 100) < -200000) {
       Alert.alert('Thông báo', 'Số dư ví GoTruck không đủ, vui lòng nạp thêm tiền để nhận đơn');
     } else {
@@ -92,7 +103,12 @@ export default function OrderDetailForNotification() {
               name="phone"
               size={26}
               color="black"
-              onPress={() => {
+              onPress={async () => {
+                const resBlock = await axiosClient.get('gotruck/authshipper/block/' + user._id);
+                if (resBlock.block) {
+                  Alert.alert('Thông báo', 'Tài bạn của bạn đã bị khóa');
+                  return;
+                }
                 Linking.openURL(`tel:${item.to_address.phone}`);
               }}
             />
@@ -131,7 +147,12 @@ export default function OrderDetailForNotification() {
             text="Hủy chuyến"
             btnColor={'red'}
             txtColor="white"
-            action={() => {
+            action={async () => {
+              const resBlock = await axiosClient.get('gotruck/authshipper/block/' + user._id);
+              if (resBlock.block) {
+                Alert.alert('Thông báo', 'Tài bạn của bạn đã bị khóa');
+                return;
+              }
               Alert.alert('Xác nhận', 'Bạn chắc chắn muốn hủy đơn?', [
                 {
                   text: 'Hủy',
@@ -141,6 +162,11 @@ export default function OrderDetailForNotification() {
                 {
                   text: 'OK',
                   onPress: async () => {
+                    const resBlock = await axiosClient.get('gotruck/authshipper/block/' + user._id);
+                    if (resBlock.block) {
+                      Alert.alert('Thông báo', 'Tài bạn của bạn đã bị khóa');
+                      return;
+                    }
                     navigation.navigate('Home', { itemCancel: item });
                   },
                 },

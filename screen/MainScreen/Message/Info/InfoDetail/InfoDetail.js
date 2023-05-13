@@ -23,7 +23,15 @@ export default function InfoDetail({ route }) {
       <View style={styles.header}>
         <Ionicons name="arrow-back" size={24} color="white" onPress={() => navigation.goBack()} />
         <Text style={styles.header.txtHeader}>
-          {item.type_notify == 'Order' ? 'Đơn hàng' : 'Khuyến mãi'}
+          {item.type_notify == 'Order'
+            ? 'Thông báo'
+            : item.type_notify === 'Normal'
+            ? 'Thông báo'
+            : item.type_notify === 'Discount'
+            ? 'Khuyến mãi'
+            : item.type_notify === 'Warning'
+            ? 'Cảnh báo'
+            : 'Thông báo'}
         </Text>
         <View style={{ width: 24 }}></View>
       </View>

@@ -18,7 +18,7 @@ export default function NewOrderDetail({ setShowModal, item, show, received, loc
 
   const handleMessage = async () => {
     const resConversation = await axiosClient.post('gotruck/conversation/', {
-      id_customer: item.id_customer,
+      id_customer: item.id_customer._id,
       id_shipper: user._id,
       id_form: item?._id,
       form_model: 'Order',
