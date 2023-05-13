@@ -15,6 +15,7 @@ import EditProfile from '../screen/MainScreen/Profile/EditProfile/EditProfile';
 import Review from '../screen/MainScreen/Profile/Review/Review';
 import Support from '../screen/MainScreen/Profile/Support/Support';
 import Help from '../screen/MainScreen/Profile/Support/Help/Help';
+import PayIntro from '../screen/MainScreen/Profile/Support/PayIntro/PayIntro';
 
 import GoTruckPay from '../screen/MainScreen/Profile/GoTruckPay/GoTruckPay';
 import HistoryMoney from '../screen/MainScreen/Profile/GoTruckPay/HistoryMoney/HistoryMoney';
@@ -107,6 +108,13 @@ const publicRoutes = [
     component: Help,
     header: true,
     title: 'Điều khoản & chính sách',
+    animation: 'slide_from_right',
+  },
+  {
+    name: 'PayIntro',
+    component: PayIntro,
+    header: true,
+    title: 'Hướng dẫn nạp tiền',
     animation: 'slide_from_right',
   },
 
