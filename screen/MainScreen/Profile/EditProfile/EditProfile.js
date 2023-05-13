@@ -53,12 +53,22 @@ export default function EditProfile({ navigation }) {
   const checkValid = () => validName && validPhone;
   const checkChange = () => {
     if (checkValid()) {
+      const phone = formatPhone();
       return name != nameInit || phone != phoneInit || imageUserNow.uri != user.avatar;
     }
     return false;
   };
 
+  const formatPhone = () => {
+    let phoneTemp = phone;
+    if (phone.charAt(0) != '0') {
+      phoneTemp = '0' + phone;
+    }
+    return phoneTemp;
+  };
+
   const sendVerification = async () => {
+    const phone = formatPhone();
     try {
       const res = await axiosClient.get('/gotruck/authshipper/user/' + phone);
       if (res.phone) {
@@ -94,6 +104,7 @@ export default function EditProfile({ navigation }) {
       return;
     }
 
+    const phone = formatPhone();
     if (phone != phoneInit) {
       Alert.alert(
         'Xác nhận',
@@ -131,6 +142,7 @@ export default function EditProfile({ navigation }) {
           if (imageUserNow.uri != user.avatar) {
             uploadFirebaseAndFinishEditProfile(imageUserNow, true);
           } else {
+            const phone = formatPhone();
             user.phone = phone;
             user.name = name;
             await axiosClient.put('/gotruck/authshipper/user/edituser', {
@@ -239,6 +251,7 @@ export default function EditProfile({ navigation }) {
     blob.close();
     snapshot.ref.getDownloadURL().then(async function (downloadURL) {
       if (phoneChange) {
+        const phone = formatPhone();
         user.avatar = downloadURL;
         user.phone = phone;
         user.name = name;

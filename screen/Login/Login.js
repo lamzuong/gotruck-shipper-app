@@ -34,55 +34,66 @@ export default function Login({ navigation }) {
 
   const label = ['Vui lòng nhập số điện thoại để tiếp tục', 'Nhập mã OTP để đăng nhập nào ^^ !!!'];
 
+  const formatPhone = () => {
+    let phoneTemp = phone;
+    if (phone.charAt(0) != '0') {
+      phoneTemp = '0' + phone;
+    }
+    return phoneTemp;
+  };
+
   const sendVerification = async () => {
+    const phone = formatPhone();
+
     //Login fast
-    // const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + phone);
-    // const orderList = await axiosClient.get('gotruck/ordershipper/shipper/' + userLogin._id);
-    // const currentLocation = await getLocationCurrentOfUser();
-    // if (currentLocation) {
-    //   dispatch(LoginSuccess(userLogin));
-    //   dispatch(SetLocation(currentLocation));
-    //   dispatch(SetListOrder(orderList));
-    //   toMainScreen();
-    // }
+    const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + phone);
+    const orderList = await axiosClient.get('gotruck/ordershipper/shipper/' + userLogin._id);
+    const currentLocation = await getLocationCurrentOfUser();
+    if (currentLocation) {
+      dispatch(LoginSuccess(userLogin));
+      dispatch(SetLocation(currentLocation));
+      dispatch(SetListOrder(orderList));
+      toMainScreen();
+    }
     // kết thúc
 
-    try {
-      const res = await axiosClient.get('/gotruck/authshipper/user/' + phone);
-      if (!res.phone) {
-        customAlert('Thông báo', 'Số điện thoại này chưa được đăng kí!', null);
-      } else {
-        if (res.status === 'Đã duyệt') {
-          const phoneProvider = new firebase.auth.PhoneAuthProvider();
-          phoneProvider
-            .verifyPhoneNumber('+84' + phone, recaptchaVerifier.current)
-            .then((result) => {
-              setVerificationId(result);
-              nextScreen();
-            })
-            .catch((error) => {
-              console.log(error?.code);
-              if (error?.code === 'auth/too-many-requests') {
-                Alert.alert(
-                  'Thông báo',
-                  'Bạn đã yêu cầu gửi mã OTP quá nhiều lần\nVui lòng thử lại sau',
-                );
-              }
-            });
-        } else {
-          customAlert(
-            'Thông báo',
-            'Tài khoản đang trong quá trình xác thực.\nVui lòng thử lại sau!',
-            null,
-          );
-        }
-      }
-    } catch (error2) {
-      customAlert('Thông báo', 'Lỗi không xác định', null);
-    }
+    // try {
+    //   const res = await axiosClient.get('/gotruck/authshipper/user/' + phone);
+    //   if (!res.phone) {
+    //     customAlert('Thông báo', 'Số điện thoại này chưa được đăng kí!', null);
+    //   } else {
+    //     if (res.status === 'Đã duyệt') {
+    //       const phoneProvider = new firebase.auth.PhoneAuthProvider();
+    //       phoneProvider
+    //         .verifyPhoneNumber('+84' + phone, recaptchaVerifier.current)
+    //         .then((result) => {
+    //           setVerificationId(result);
+    //           nextScreen();
+    //         })
+    //         .catch((error) => {
+    //           console.log(error?.code);
+    //           if (error?.code === 'auth/too-many-requests') {
+    //             Alert.alert(
+    //               'Thông báo',
+    //               'Bạn đã yêu cầu gửi mã OTP quá nhiều lần\nVui lòng thử lại sau',
+    //             );
+    //           }
+    //         });
+    //     } else {
+    //       customAlert(
+    //         'Thông báo',
+    //         'Tài khoản đang trong quá trình xác thực.\nVui lòng thử lại sau!',
+    //         null,
+    //       );
+    //     }
+    //   }
+    // } catch (error2) {
+    //   customAlert('Thông báo', 'Lỗi không xác định', null);
+    // }
   };
 
   const checkOTP = () => {
+    const phone = formatPhone();
     if (codeOTP) {
       const credential = firebase.auth.PhoneAuthProvider.credential(verificationId, codeOTP);
       return firebase
