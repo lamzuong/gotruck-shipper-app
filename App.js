@@ -10,7 +10,7 @@ import { AuthContextProvider } from './context/AuthContext';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
-  // LogBox.ignoreAllLogs();
+  LogBox.ignoreAllLogs();
 
   return (
     <AuthContextProvider>

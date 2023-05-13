@@ -21,8 +21,8 @@ export default function Order() {
   };
 
   useEffect(() => {
-    socketClient.off(user._id + '');
-    socketClient.on(user._id + '', (data) => {
+    socketClient.off('data' + user._id);
+    socketClient.on('data' + user._id, (data) => {
       renderUI();
     });
   }, []);

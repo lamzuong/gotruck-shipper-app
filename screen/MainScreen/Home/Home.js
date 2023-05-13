@@ -102,8 +102,8 @@ export default function Home({ navigation, route }) {
     return truckDefault._id;
   };
   const onSocketReceiveOrder = () => {
-    socketClient.off(getTruckDefault());
-    socketClient.on(getTruckDefault(), async (data) => {
+    socketClient.off('data' + getTruckDefault());
+    socketClient.on('data' + getTruckDefault(), async (data) => {
       const resultRoute = await getRouteTwoLocation(locationShipper, data.from_address);
       const distanceTwoLocation = resultRoute?.result?.routes[0]?.distance?.value || -1;
       const distanceReceiveOrder = await axiosClient.get('gotruck/ordershipper/distancereceive');
@@ -154,7 +154,7 @@ export default function Home({ navigation, route }) {
     if (status) {
       onSocketReceiveOrder();
     } else {
-      socketClient.off(getTruckDefault());
+      socketClient.off('data' + getTruckDefault());
       setListOrderNotify([]);
     }
   }, [status]);
@@ -180,7 +180,7 @@ export default function Home({ navigation, route }) {
           updateNewOrder.status = 'Đã nhận';
           const res = await axiosClient.put('gotruck/ordershipper/', updateNewOrder);
           if (res.status === 'Đã nhận' && res.shipper.id_shipper === user._id) {
-            socketClient.off(getTruckDefault());
+            socketClient.off('data' + getTruckDefault());
             setOrderItem((prev) => route.params.itemOrder);
             setHaveOrder(true);
             if (addressExpected) {
@@ -235,8 +235,8 @@ export default function Home({ navigation, route }) {
   }, [route]);
 
   useEffect(() => {
-    socketClient.off(getTruckDefault() + 'received');
-    socketClient.on(getTruckDefault() + 'received', (data) => {
+    socketClient.off('received' + getTruckDefault());
+    socketClient.on('received' + getTruckDefault(), (data) => {
       setListOrderNotify((prev) => {
         const index = prev.findIndex((e) => e.id_order === data.id_order);
         if (index > -1) {
@@ -246,8 +246,8 @@ export default function Home({ navigation, route }) {
       });
     });
     onSocketCancel();
-    socketClient.off(getTruckDefault() + 'cancel_received');
-    socketClient.on(getTruckDefault() + 'cancel_received', async (data) => {
+    socketClient.off('cancel_received' + getTruckDefault());
+    socketClient.on('cancel_received' + getTruckDefault(), async (data) => {
       Alert.alert('Thông báo', 'Đơn hàng đã bị hủy bởi khách hàng', [
         { text: 'OK', onPress: () => navigation.navigate('Home') },
       ]);
@@ -263,8 +263,8 @@ export default function Home({ navigation, route }) {
   }, []);
 
   const onSocketCancel = () => {
-    socketClient.off(getTruckDefault() + 'cancel');
-    socketClient.on(getTruckDefault() + 'cancel', async (data) => {
+    socketClient.off('cancel' + getTruckDefault());
+    socketClient.on('cancel' + getTruckDefault(), async (data) => {
       if (data.status === 'Đã hủy' && data?.shipper?.id_shipper) {
         Alert.alert('Thông báo', 'Đơn hàng đã bị hủy bởi khách hàng', [
           { text: 'OK', onPress: () => navigation.navigate('Home') },
@@ -364,6 +364,7 @@ export default function Home({ navigation, route }) {
   //     shipperNew.current_address = location;
   //     await axiosClient.put('gotruck/ordershipper/location', shipperNew);
   //     setLocationShipper(location);
+  //     console.log("Đang lấy vị trí hiện tại của tài xế")
   //   }, 10000);
   //   return () => {
   //     clearInterval(timeId);
@@ -376,7 +377,7 @@ export default function Home({ navigation, route }) {
         '/gotruck/ordershipper/ordercurrent/' + user._id,
       );
       if (!resOrderCurrent.isNotFound) {
-        socketClient.off(getTruckDefault());
+        socketClient.off('data' + getTruckDefault());
         setOrderItem(resOrderCurrent);
         setHaveOrder(true);
         const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + user.phone);
