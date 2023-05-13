@@ -110,6 +110,7 @@ export default function Home({ navigation, route }) {
 
       if (
         distanceTwoLocation >= 0 &&
+        // distanceTwoLocation <= 500000000
         distanceTwoLocation <= distanceReceiveOrder.distance_receive_order
       ) {
         if (addressExpected) {
@@ -123,9 +124,14 @@ export default function Home({ navigation, route }) {
           return [...prev, data];
         });
       } else if (distanceTwoLocation < 0) {
-        console.log('k cos duong di');
+        console.log('Không có đường đi');
       } else {
-        console.log('quas xa');
+        console.log(
+          'Ngoài khoảng cách nhận đơn: ' +
+            distanceTwoLocation +
+            ' > ' +
+            distanceReceiveOrder.distance_receive_order,
+        );
       }
     });
   };
@@ -137,7 +143,7 @@ export default function Home({ navigation, route }) {
       listPoly?.forEach((el) => {
         routePolyTemp.push({ latitude: el.lat, longitude: el.lng });
       });
-      setRoutePolyline(routePolyTemp);
+      setRoutePolyline([...routePolyTemp]);
       setTimeout(() => {
         zoomMap(addressTo);
       }, 1000);
@@ -186,6 +192,7 @@ export default function Home({ navigation, route }) {
             const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + user.phone);
             dispatch(LoginSuccess(userLogin));
             setAddressExpected('');
+            setReceived(false);
             handleDirection(res.from_address);
             await AsyncStorage.setItem('orderCurrent', JSON.stringify(res));
             socketClient.emit('shipper_receive', res);
@@ -402,8 +409,8 @@ export default function Home({ navigation, route }) {
         {haveOrder && (
           <Polyline coordinates={routePolyline} strokeColor="rgb(0,176,255)" strokeWidth={8} />
         )}
-        {haveOrder &&
-          (received ? (
+        {haveOrder && (
+          <>
             <Marker
               coordinate={orderItem?.to_address}
               onPress={() => {
@@ -418,9 +425,8 @@ export default function Home({ navigation, route }) {
               )}
               <Ionicons name="location" size={30} color={'red'} style={styles.marker} />
             </Marker>
-          ) : (
             <Marker
-              coordinate={orderItem.from_address}
+              coordinate={orderItem?.from_address}
               onPress={() => {
                 setshowDetail(!showDetail);
               }}
@@ -438,7 +444,8 @@ export default function Home({ navigation, route }) {
                 style={styles.marker}
               />
             </Marker>
-          ))}
+          </>
+        )}
 
         <Marker coordinate={locationShipper}>
           <MaterialIcons

@@ -96,10 +96,12 @@ export default function ChatRoom({ route }) {
   //------------------------------
   useEffect(() => {
     getAllMessage();
-    socketClient.on(user._id + 'message', (data) => {
+    socketClient.on('message' + String(user._id), (data) => {
       getAllMessage();
     });
-    return () => socketClient.off(user._id + 'message');
+    return () => {
+      socketClient.off('message' + String(user._id));
+    };
   }, []);
 
   return (
@@ -107,7 +109,11 @@ export default function ChatRoom({ route }) {
       <View style={styles.header}>
         <Ionicons name="arrow-back" size={24} color="white" onPress={() => navigation.goBack()} />
         <Text style={styles.header.txtHeader}>{item.id_customer.name}</Text>
-        <Feather name="phone" size={24} color="white" onPress={() => handleCallPhone()} />
+        {!item.disable ? (
+          <Feather name="phone" size={24} color="white" onPress={() => handleCallPhone()} />
+        ) : (
+          <View></View>
+        )}
       </View>
       <View style={styles.container}>
         <FlatList
