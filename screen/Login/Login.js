@@ -47,6 +47,10 @@ export default function Login({ navigation }) {
 
     //Login fast
     const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + phone);
+    if (!userLogin.phone) {
+      customAlert('Thông báo', 'Số điện thoại này chưa được đăng kí!', null);
+      return;
+    }
     const orderList = await axiosClient.get('gotruck/ordershipper/shipper/' + userLogin._id);
     const currentLocation = await getLocationCurrentOfUser();
     if (currentLocation) {
