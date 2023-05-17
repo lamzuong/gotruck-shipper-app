@@ -6,8 +6,8 @@ const heightScreen = Dimensions.get('window').height;
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    backgroundColor:"white",
-    flex:1
+    backgroundColor: 'white',
+    flex: 1,
   },
   title: {
     marginTop: 20,
@@ -21,6 +21,8 @@ const styles = StyleSheet.create({
   },
   viewOptions: {
     flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 20,
   },
   option: {
     marginHorizontal: 50,

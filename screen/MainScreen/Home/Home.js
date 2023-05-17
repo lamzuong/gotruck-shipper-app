@@ -389,6 +389,7 @@ export default function Home({ navigation, route }) {
           handleDirection(resOrderCurrent.from_address);
         }
         if (resOrderCurrent.status === 'Đang giao') {
+          console.log(1);
           stopZoomRef.current = false;
           setHeightSwip(120);
           setReceived(true);
