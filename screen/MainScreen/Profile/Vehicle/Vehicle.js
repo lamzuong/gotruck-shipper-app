@@ -92,7 +92,6 @@ export default function Vehicle({ navigation }) {
     return () => backHandler.remove();
   }, []);
   //------------------------------
-
   return (
     <ScrollView style={styles.container}>
       <Modal
@@ -144,7 +143,10 @@ export default function Vehicle({ navigation }) {
               <Text style={styles.statusPending}>Đang xác minh</Text>
             )}
           </View>
-          <Text>{e.license_plate}</Text>
+          <Text>
+            {e.license_plate} - Trọng tải {e.type_truck.name} tấn
+          </Text>
+
           {e.default ? (
             <Text style={styles.defaultTruck}>
               <AntDesign name="checkcircleo" size={12} color="#04AF46" />

@@ -364,7 +364,7 @@ export default function Home({ navigation, route }) {
   //     shipperNew.current_address = location;
   //     await axiosClient.put('gotruck/ordershipper/location', shipperNew);
   //     setLocationShipper(location);
-  //     console.log("Đang lấy vị trí hiện tại của tài xế")
+  //     console.log('Đang lấy vị trí hiện tại của tài xế');
   //   }, 10000);
   //   return () => {
   //     clearInterval(timeId);
@@ -387,6 +387,7 @@ export default function Home({ navigation, route }) {
         await AsyncStorage.setItem('orderCurrent', JSON.stringify(resOrderCurrent));
         setStatus(true);
         if (resOrderCurrent.status === 'Đang giao') {
+          console.log(1);
           stopZoomRef.current = false;
           setHeightSwip(120);
           setReceived(true);

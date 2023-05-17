@@ -2,12 +2,12 @@ import styles from './stylesGoTruckPay';
 
 import { View, Text, TouchableOpacity } from 'react-native';
 import React, { useContext } from 'react';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { AuthContext } from '../../../../context/AuthContext';
 
 export default function GoTruckPay({ navigation }) {
   const money = 22150123;
-  const {user} = useContext(AuthContext)
+  const { user } = useContext(AuthContext);
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Số dư hiện tại</Text>
@@ -19,6 +19,10 @@ export default function GoTruckPay({ navigation }) {
         <TouchableOpacity style={styles.option} onPress={() => navigation.navigate('HistoryMoney')}>
           <MaterialCommunityIcons name="clipboard-text-clock" size={40} color="#0DBEBE" />
           <Text>Lịch sử</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.option} onPress={() => navigation.navigate('Deposit')}>
+          <FontAwesome5 name="money-bill" size={40} color="green" />
+          <Text>Nạp tiền</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.option} onPress={() => navigation.navigate('Withdraw')}>
           <MaterialCommunityIcons name="hand-coin" size={40} color="#F17605" />

@@ -21,6 +21,8 @@ import GoTruckPay from '../screen/MainScreen/Profile/GoTruckPay/GoTruckPay';
 import HistoryMoney from '../screen/MainScreen/Profile/GoTruckPay/HistoryMoney/HistoryMoney';
 import Withdraw from '../screen/MainScreen/Profile/GoTruckPay/Withdraw/Withdraw';
 import WithdrawSuccess from '../screen/MainScreen/Profile/GoTruckPay/Withdraw/WithdrawSuccess/WithdrawSuccess';
+import Deposit from '../screen/MainScreen/Profile/GoTruckPay/Deposit/Deposit';
+import DepositSuccess from '../screen/MainScreen/Profile/GoTruckPay/Deposit/DepositSuccess/DepositSuccess';
 
 import Vehicle from '../screen/MainScreen/Profile/Vehicle/Vehicle';
 import FormVehicle from '../screen/MainScreen/Profile/Vehicle/FormVehicle/FormVehicle';
@@ -136,6 +138,19 @@ const publicRoutes = [
   {
     name: 'WithdrawSuccess',
     component: WithdrawSuccess,
+    header: false,
+    animation: 'slide_from_right',
+  },
+  {
+    name: 'Deposit',
+    component: Deposit,
+    header: true,
+    title: 'Nạp tiền',
+    animation: 'slide_from_right',
+  },
+  {
+    name: 'DepositSuccess',
+    component: DepositSuccess,
     header: false,
     animation: 'slide_from_right',
   },
