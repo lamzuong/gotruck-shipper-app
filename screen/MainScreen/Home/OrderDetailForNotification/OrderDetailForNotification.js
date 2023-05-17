@@ -57,7 +57,7 @@ export default function OrderDetailForNotification() {
             <Foundation name="record" size={24} color="#0DBEBE" style={{ width: 30 }} />
             <Text style={styles.label}>Người gửi</Text>
           </View>
-          <View style={styles.inline}>
+          {/* <View style={styles.inline}>
             <Feather
               name="message-square"
               size={26}
@@ -75,7 +75,7 @@ export default function OrderDetailForNotification() {
                 Linking.openURL(`tel:${item.from_address.phone}`);
               }}
             />
-          </View>
+          </View> */}
         </View>
         <Text style={styles.content}>
           {item.from_address.name +
@@ -89,15 +89,15 @@ export default function OrderDetailForNotification() {
             <Ionicons name="md-location-sharp" size={24} color="red" style={{ width: 30 }} />
             <Text style={styles.label}>Người nhận</Text>
           </View>
-          <View style={styles.inline}>
-            {/* <Feather
+          {/* <View style={styles.inline}>
+            <Feather
               name="message-square"
               size={26}
               color="black"
               onPress={() => {
                 handleMessage();
               }}
-            /> */}
+            />
             <View style={{ width: 10 }}></View>
             <Feather
               name="phone"
@@ -112,7 +112,7 @@ export default function OrderDetailForNotification() {
                 Linking.openURL(`tel:${item.to_address.phone}`);
               }}
             />
-          </View>
+          </View> */}
         </View>
         <Text style={styles.content}>
           {item.to_address.name + '\n' + item.to_address.address + '\n' + item.from_address.phone}

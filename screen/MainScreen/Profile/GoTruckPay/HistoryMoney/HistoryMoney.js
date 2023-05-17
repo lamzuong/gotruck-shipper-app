@@ -29,9 +29,13 @@ export default function HistoryMoney() {
             <Text>
               {e.type === 'Nạp tiền'
                 ? 'Bạn đã gửi yêu cầu nạp tiền'
-                : 'Bạn đã gửi yêu cầu rút tiền'}
+                : e.type === 'Rút tiền'
+                ? 'Bạn đã gửi yêu cầu rút tiền'
+                : 'Phí đơn hàng ' + e.id_order}
             </Text>
-            <Text style={{ marginLeft: 10, color: stylesGlobal.mainGreen }}>{e.status}</Text>
+            <Text style={{ marginLeft: 10, color: stylesGlobal.mainGreen }}>
+              {e.type !== 'Order' && e.status}
+            </Text>
           </View>
 
           <View style={stylesGlobal.inlineBetween}>

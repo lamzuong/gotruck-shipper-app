@@ -62,7 +62,32 @@ export default function Chat({ navigation }) {
 
   useEffect(() => {
     renderUI();
-  }, []);
+  }, [isFocus]);
+
+  function timeSince(date) {
+    let seconds = Math.floor((new Date() - date) / 1000);
+    let interval = seconds / 31536000;
+    if (interval > 1) {
+      return Math.floor(interval) + ' năm trước';
+    }
+    interval = seconds / 2592000;
+    if (interval > 1) {
+      return Math.floor(interval) + ' tháng trước';
+    }
+    interval = seconds / 86400;
+    if (interval > 1) {
+      return Math.floor(interval) + ' ngày trước';
+    }
+    interval = seconds / 3600;
+    if (interval > 1) {
+      return Math.floor(interval) + ' giờ trước';
+    }
+    interval = seconds / 60;
+    if (interval > 1) {
+      return Math.floor(interval) + ' phút trước';
+    }
+    return 'Vừa gửi';
+  }
 
   return (
     <View style={styles.container}>
@@ -85,20 +110,22 @@ export default function Chat({ navigation }) {
               <View style={styles.itemChat.rightItem}>
                 <Text
                   style={
-                    // item.message.read
-                    //   ?
-                    styles.itemChat.name.read
-                    // : styles.itemChat.name.unread
+                    item.read.indexOf(user._id) > -1
+                      ? styles.itemChat.name.read
+                      : item.lastMess !== ''
+                      ? styles.itemChat.name.unread
+                      : styles.itemChat.name.read
                   }
                 >
                   {item.id_form.id_order}
                 </Text>
                 <Text
                   style={
-                    // item.message.read
-                    //   ?
-                    styles.itemChat.name.read
-                    // : styles.itemChat.name.unread
+                    item.read.indexOf(user._id) > -1
+                      ? styles.itemChat.name.read
+                      : item.lastMess !== ''
+                      ? styles.itemChat.name.unread
+                      : styles.itemChat.name.read
                   }
                 >
                   {item.id_customer.name}
@@ -111,30 +138,34 @@ export default function Chat({ navigation }) {
                   >
                     <Text
                       style={[
-                        // item.message.read
-                        // ?
-                        styles.itemChat.viewMessage.read,
-                        // : styles.itemChat.viewMessage.unread,
+                        item.read.indexOf(user._id) > -1
+                          ? styles.itemChat.viewMessage.read
+                          : item.lastMess !== ''
+                          ? styles.itemChat.viewMessage.unread
+                          : null,
                         styles.itemChat.viewMessage.message,
                       ]}
                     >
-                      {item.lastMess}{' '}
+                      {item.lastMess}
                     </Text>
                   </ReadMore>
 
                   <View style={{ flexDirection: 'row' }}>
                     <Text
                       style={[
-                        // item.message.read
-                        // ?
-                        styles.itemChat.viewMessage.read,
-                        // : styles.itemChat.viewMessage.unread
+                        item.read.indexOf(user._id) > -1
+                          ? styles.itemChat.viewMessage.read
+                          : styles.itemChat.viewMessage.unread,
                         styles.itemChat.viewMessage.time,
                       ]}
                     >
-                      {item.time}{' '}
+                      {item.timeLastMess && item.lastMess !== ''
+                        ? timeSince(item.timeLastMess)+"  "
+                        : null}
                     </Text>
-                    {/* {item.message.read ? null : <Octicons name="dot-fill" size={24} color="blue" />} */}
+                    {item.read.indexOf(user._id) > -1 ? null : item.lastMess !== '' ? (
+                      <Octicons name="dot-fill" size={24} color="blue" />
+                    ) : null}
                   </View>
                 </View>
               </View>

@@ -42,7 +42,7 @@ export default function Review({ navigation }) {
 
             <Rating
               type="custom"
-              imageSize={15}
+              imageSize={14}
               ratingCount={5}
               startingValue={e.star}
               tintColor="white"

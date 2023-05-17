@@ -41,6 +41,7 @@ export default function ChatRoom({ route }) {
       message: mess.trim(),
       id_sender: user._id,
       userSendModel: 'Shipper',
+      read: [user._id],
     };
     if (mess.trim()) {
       await axiosClient.post('gotruck/conversation/message/', {
@@ -57,6 +58,16 @@ export default function ChatRoom({ route }) {
     const listMess = await axiosClient.get('gotruck/conversation/message/' + item._id);
     listMess.reverse();
     setListMessage(listMess);
+
+    const listMessUnread = [];
+    listMess.map((item) => {
+      if (item.read.indexOf(user._id) === -1) {
+        item.read.push(user._id);
+        listMessUnread.push(item);
+      }
+    });
+
+    await axiosClient.put('gotruck/conversation/read', listMessUnread);
   };
 
   function timeSince(date) {

@@ -19,11 +19,11 @@ const widthScreen = Dimensions.get('window').width;
 const heightScreen = Dimensions.get('window').height;
 export default function Login({ navigation }) {
   const autoTrue = true;
-  const dataTest = '0359434729';
+  const dataTest = '0359434723';
   const dataTest2 = '123456';
   const [screen, setScreen] = useState(1);
   const [validData, setValidData] = useState(true);
-  const [phone, setPhone] = useState();
+  const [phone, setPhone] = useState(dataTest);
   const [codeOTP, setcodeOTP] = useState();
   const [verificationId, setVerificationId] = useState();
 
@@ -45,6 +45,8 @@ export default function Login({ navigation }) {
   const sendVerification = async () => {
     const phone = formatPhone();
 
+
+    //phải xóa initvalue và valude init của state
     //Login fast
     const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + phone);
     if (!userLogin.phone) {
@@ -193,6 +195,7 @@ export default function Login({ navigation }) {
               value={setPhone}
               valid={setValidData}
               screen={screen}
+              initialValue='0359434723'
             />
           </View>
         ) : (
