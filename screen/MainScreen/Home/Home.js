@@ -217,15 +217,7 @@ export default function Home({ navigation, route }) {
         onSocketReceiveOrder();
         onSocketCancel();
         (async function () {
-          const asyncStorageKeys = await AsyncStorage.getAllKeys();
-          if (asyncStorageKeys.length > 0) {
-            if (Platform.OS === 'android') {
-              await AsyncStorage.clear();
-            }
-            if (Platform.OS === 'ios') {
-              await AsyncStorage.multiRemove(asyncStorageKeys);
-            }
-          }
+          await AsyncStorage.removeItem('orderCurrent');
         }).call(this);
         stopZoomRef.current = false;
       } else if (route.params.expected_address) {
@@ -258,7 +250,7 @@ export default function Home({ navigation, route }) {
       setListOrderNotify([]);
       setHaveOrder(false);
       onSocketReceiveOrder();
-      await AsyncStorage.clear();
+      await AsyncStorage.removeItem('orderCurrent');
     });
   }, []);
 
@@ -276,7 +268,6 @@ export default function Home({ navigation, route }) {
         setListOrderNotify([]);
         setHaveOrder(false);
         onSocketReceiveOrder();
-        await AsyncStorage.clear();
         await axiosClient.put('/gotruck/conversation/disable', { _id: data._id });
       } else {
         await axiosClient.put('/gotruck/conversation/disable', { _id: data._id });
@@ -301,6 +292,15 @@ export default function Home({ navigation, route }) {
     if (resOrderCancel.status === 'Đã hủy') {
       await axiosClient.put('/gotruck/conversation/disable', { _id: item._id });
       if (resOrderCancel.reason_cancel.user_cancel === 'Shipper') {
+        const sendNotify = {
+          title: 'Thông báo đơn hàng ' + item.id_order,
+          content: 'Tài xế ' + item.shipper.id_shipper.name + ' đã hủy đơn hàng vì ' + reason,
+          type_notify: 'Order',
+          type_send: 'Specific',
+          id_receiver: item.id_customer?._id || item.id_customer,
+          userModel: 'Customer',
+        };
+        await axiosClient.post('gotruck/notify/shipper', sendNotify);
         socketClient.emit('shipper_cancel', resOrderCancel);
       }
       if (resOrderCancel.reason_cancel.user_cancel === 'Customer') {
@@ -617,9 +617,11 @@ export default function Home({ navigation, route }) {
             style={[styles.btnPower, { backgroundColor: '#04AF46' }]}
             onPress={async () => {
               if (user.balance <= 0) {
-                Alert.alert('Thông báo', 'Vui lòng nạp tiền vào ví GoTruck để có thể nhận đơn hàng', [
-                  { text: 'OK', onPress: () => {} },
-                ]);
+                Alert.alert(
+                  'Thông báo',
+                  'Vui lòng nạp tiền vào ví GoTruck để có thể nhận đơn hàng',
+                  [{ text: 'OK', onPress: () => {} }],
+                );
               } else {
                 const resBlock = await axiosClient.get('gotruck/authshipper/block/' + user._id);
                 if (resBlock.block) {

@@ -20,6 +20,7 @@ export default function Profile({ navigation }) {
         text: 'OK',
         onPress: async () => {
           await AsyncStorage.removeItem('phone');
+          await AsyncStorage.removeItem('dateLogin');
           navigation.navigate(screen);
         },
       },

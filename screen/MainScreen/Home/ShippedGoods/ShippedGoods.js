@@ -78,6 +78,19 @@ export default function ShippedGoods({ navigation }) {
     await axiosClient.put('/gotruck/conversation/disable', itemSend);
     const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + user.phone);
     dispatch(LoginSuccess(userLogin));
+    const sendNotify = {
+      title: 'Thông báo đơn hàng ' + item.id_order,
+      content:
+        'Tài xế ' +
+        item.shipper.id_shipper.name +
+        ' đã vận chuyển hàng đến nơi giao hàng thành công',
+      image: listURLImage,
+      type_notify: 'Order',
+      type_send: 'Specific',
+      id_receiver: item.id_customer?._id || item.id_customer,
+      userModel: 'Customer',
+    };
+    await axiosClient.post('gotruck/notify/shipper', sendNotify);
     setCheckUpload(false);
     socketClient.emit('shipper_completed', resOrder);
     navigation.navigate('FinishPage', {

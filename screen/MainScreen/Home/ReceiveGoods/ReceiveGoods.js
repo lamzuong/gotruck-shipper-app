@@ -85,6 +85,20 @@ export default function ReceiveGoods({ navigation }) {
     item.list_image_from_of_shipper = listURLImage;
     const resOrder = await axiosClient.put('/gotruck/ordershipper/receivegoods', item);
     socketClient.emit('shipper_shipping', resOrder);
+    const sendNotify = {
+      title: 'Thông báo đơn hàng ' + item.id_order,
+      content:
+        'Tài xế ' +
+        item.shipper.id_shipper.name +
+        ' đã nhận hàng và đang vận chuyển hàng đến nơi giao hàng',
+      image: listURLImage,
+      type_notify: 'Order',
+      type_send: 'Specific',
+      id_receiver: item.id_customer?._id || item.id_customer,
+      userModel: 'Customer',
+    };
+    await axiosClient.post('gotruck/notify/shipper', sendNotify);
+
     setCheckUpload(false);
     navigation.navigate('Home', {
       receivedGoods: true,

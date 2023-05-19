@@ -24,7 +24,7 @@ export default function Login({ navigation }) {
   const dataTest = '0359434723';
   const dataTest2 = '123456';
   const [screen, setScreen] = useState(1);
-  const [validData, setValidData] = useState(true);
+  const [validData, setValidData] = useState(false);
   const [phone, setPhone] = useState();
   const [codeOTP, setcodeOTP] = useState();
   const [verificationId, setVerificationId] = useState();
@@ -44,14 +44,26 @@ export default function Login({ navigation }) {
     return phoneTemp;
   };
 
+  /*Hàm tính khoảng cách giữa 2 ngày trong javascript*/
+  const get_day_of_time = (d1, d2) => {
+    let ms1 = d1.getTime();
+    let ms2 = d2.getTime();
+    return Math.ceil((ms2 - ms1) / (24 * 60 * 60 * 1000));
+  };
+
   useEffect(() => {
     const loginFast = async () => {
       const phoneLocal = await AsyncStorage.getItem('phone');
+      const dateLogin = await AsyncStorage.getItem('dateLogin');
       if (phoneLocal) {
+        if (dateLogin && get_day_of_time(new Date(dateLogin), new Date()) > 3) {
+          return;
+        }
         const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + phoneLocal);
         const orderList = await axiosClient.get('gotruck/ordershipper/shipper/' + userLogin._id);
         const currentLocation = await getLocationCurrentOfUser();
         if (currentLocation) {
+          await AsyncStorage.setItem('dateLogin', new Date().toString());
           dispatch(LoginSuccess(userLogin));
           dispatch(SetLocation(currentLocation));
           dispatch(SetListOrder(orderList));
@@ -64,7 +76,6 @@ export default function Login({ navigation }) {
 
   const sendVerification = async () => {
     const phone = formatPhone();
-
     // Login fast
     // const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + phone);
     // if (!userLogin.phone) {
@@ -75,6 +86,7 @@ export default function Login({ navigation }) {
     // const currentLocation = await getLocationCurrentOfUser();
     // if (currentLocation) {
     //   await AsyncStorage.setItem('phone', phone);
+    //   await AsyncStorage.setItem('dateLogin', new Date().toString());
     //   dispatch(LoginSuccess(userLogin));
     //   dispatch(SetLocation(currentLocation));
     //   dispatch(SetListOrder(orderList));
@@ -135,6 +147,7 @@ export default function Login({ navigation }) {
             const currentLocation = await getLocationCurrentOfUser();
             if (currentLocation) {
               await AsyncStorage.setItem('phone', phone);
+              await AsyncStorage.setItem('dateLogin', new Date().toString());
               dispatch(LoginSuccess(userLogin));
               dispatch(SetLocation(currentLocation));
               dispatch(SetListOrder(orderList));

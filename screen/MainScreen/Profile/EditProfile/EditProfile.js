@@ -100,10 +100,7 @@ export default function EditProfile({ navigation }) {
   const updateProfile1 = async () => {
     const resOrderCurrent = await axiosClient.get('/gotruck/ordershipper/ordercurrent/' + user._id);
     if (!resOrderCurrent.isNotFound) {
-      Alert.alert(
-        'Thông báo',
-        'Trong quá trình vận chuyển hàng không thể thay đổi số điện thoại',
-      );
+      Alert.alert('Thông báo', 'Trong quá trình vận chuyển hàng không thể thay đổi số điện thoại');
       setModalVisible(false);
       return;
     }
@@ -150,6 +147,7 @@ export default function EditProfile({ navigation }) {
             user.phone = phone;
             user.name = name;
             await AsyncStorage.setItem('phone', phone);
+            await AsyncStorage.setItem('dateLogin', new Date().toString());
             await axiosClient.put('/gotruck/authshipper/user/edituser', {
               user: {
                 ...user,
@@ -261,6 +259,7 @@ export default function EditProfile({ navigation }) {
         user.phone = phone;
         user.name = name;
         await AsyncStorage.setItem('phone', phone);
+        await AsyncStorage.setItem('dateLogin', new Date().toString());
         await axiosClient.put('/gotruck/authshipper/user/edituser', {
           user: {
             ...user,
