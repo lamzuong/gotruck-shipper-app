@@ -303,6 +303,7 @@ export default function Home({ navigation, route }) {
         await axiosClient.post('gotruck/notify/shipper', sendNotify);
         socketClient.emit('shipper_cancel', resOrderCancel);
       }
+
       if (resOrderCancel.reason_cancel.user_cancel === 'Customer') {
         Alert.alert('Thông báo', 'Đơn hàng đã bị hủy bởi khách hàng', [
           { text: 'OK', onPress: () => navigation.navigate('Home') },
