@@ -14,6 +14,8 @@ import axiosClient from '../../api/axiosClient';
 import { AuthContext } from '../../context/AuthContext';
 import { LoginSuccess, SetListOrder, SetLocation } from '../../context/AuthAction';
 import { getLocationCurrentOfUser } from '../../global/utilLocation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useIsFocused } from '@react-navigation/native';
 
 const widthScreen = Dimensions.get('window').width;
 const heightScreen = Dimensions.get('window').height;
@@ -23,7 +25,7 @@ export default function Login({ navigation }) {
   const dataTest2 = '123456';
   const [screen, setScreen] = useState(1);
   const [validData, setValidData] = useState(true);
-  const [phone, setPhone] = useState(dataTest);
+  const [phone, setPhone] = useState();
   const [codeOTP, setcodeOTP] = useState();
   const [verificationId, setVerificationId] = useState();
 
@@ -31,7 +33,7 @@ export default function Login({ navigation }) {
   const recaptchaVerifier = useRef(null);
 
   const { dispatch, user } = useContext(AuthContext);
-
+  const isFocus = useIsFocused();
   const label = ['Vui lòng nhập số điện thoại để tiếp tục', 'Nhập mã OTP để đăng nhập nào ^^ !!!'];
 
   const formatPhone = () => {
@@ -42,16 +44,37 @@ export default function Login({ navigation }) {
     return phoneTemp;
   };
 
+  useEffect(() => {
+    const loginFast = async () => {
+      const phoneLocal = await AsyncStorage.getItem('phone');
+      if (phoneLocal) {
+        const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + phoneLocal);
+        const orderList = await axiosClient.get('gotruck/ordershipper/shipper/' + userLogin._id);
+        const currentLocation = await getLocationCurrentOfUser();
+        if (currentLocation) {
+          dispatch(LoginSuccess(userLogin));
+          dispatch(SetLocation(currentLocation));
+          dispatch(SetListOrder(orderList));
+          toMainScreen();
+        }
+      }
+    };
+    loginFast();
+  }, [isFocus]);
+
   const sendVerification = async () => {
     const phone = formatPhone();
 
-
-    //phải xóa initvalue và valude init của state
-    //Login fast
+    // Login fast
     // const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + phone);
+    // if (!userLogin.phone) {
+    //   customAlert('Thông báo', 'Số điện thoại này chưa được đăng kí!', null);
+    //   return;
+    // }
     // const orderList = await axiosClient.get('gotruck/ordershipper/shipper/' + userLogin._id);
     // const currentLocation = await getLocationCurrentOfUser();
     // if (currentLocation) {
+    //   await AsyncStorage.setItem('phone', phone);
     //   dispatch(LoginSuccess(userLogin));
     //   dispatch(SetLocation(currentLocation));
     //   dispatch(SetListOrder(orderList));
@@ -111,6 +134,7 @@ export default function Login({ navigation }) {
             );
             const currentLocation = await getLocationCurrentOfUser();
             if (currentLocation) {
+              await AsyncStorage.setItem('phone', phone);
               dispatch(LoginSuccess(userLogin));
               dispatch(SetLocation(currentLocation));
               dispatch(SetListOrder(orderList));
@@ -191,7 +215,6 @@ export default function Login({ navigation }) {
               value={setPhone}
               valid={setValidData}
               screen={screen}
-              initialValue='0359434723'
             />
           </View>
         ) : (

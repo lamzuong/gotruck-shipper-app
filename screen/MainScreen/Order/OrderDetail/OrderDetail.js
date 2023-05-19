@@ -60,10 +60,10 @@ export default function OrderDetail({ route, navigation }) {
             <Text style={styles.labelFooter}>Khoảng cách</Text>
             <Text style={styles.content}>{order.distance} km</Text>
           </View>
-          <View style={styles.inline}>
+          {/* <View style={styles.inline}>
             <Text style={styles.labelFooter}>Thời gian dự kiến</Text>
             <Text style={styles.content}>{order.expectedTime} phút</Text>
-          </View>
+          </View> */}
           <View style={styles.inline}>
             <Text style={styles.labelFooter}>Chi phí vận chuyển</Text>
             <Text style={{ fontWeight: 'bold', fontSize: 20 }}>

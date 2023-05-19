@@ -160,7 +160,7 @@ export default function Chat({ navigation }) {
                       ]}
                     >
                       {item.timeLastMess && item.lastMess !== ''
-                        ? timeSince(item.timeLastMess)+"  "
+                        ? timeSince(new Date(item.timeLastMess)) + '  '
                         : null}
                     </Text>
                     {item.read.indexOf(user._id) > -1 ? null : item.lastMess !== '' ? (

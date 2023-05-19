@@ -21,13 +21,12 @@ export default function Vehicle({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [item, setItem] = useState({});
   const { user, dispatch } = useContext(AuthContext);
-
-  const truck = user.infoAllTruck;
+  const [truck, setTruck] = useState(user.infoAllTruck);
 
   const handleSetDefault = async () => {
     const resOrderCurrent = await axiosClient.get('/gotruck/ordershipper/ordercurrent/' + user._id);
     if (!resOrderCurrent.isNotFound) {
-      Alert.alert('Thông báo', 'Trong quá trình giao hàng không thể thay đổi phương tiện');
+      Alert.alert('Thông báo', 'Trong quá trình vận chuyển hàng không thể thay đổi phương tiện');
       setModalVisible(false);
     } else {
       Alert.alert(
@@ -81,6 +80,15 @@ export default function Vehicle({ navigation }) {
       },
     ]);
   };
+
+  useEffect(() => {
+    const getTrucks = async () => {
+      const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + user.phone);
+      dispatch(LoginSuccess(userLogin));
+      setTruck(userLogin.infoAllTruck);
+    };
+    getTrucks();
+  }, []);
 
   //----------Back Button----------
   useEffect(() => {

@@ -18,80 +18,33 @@ export default function Deposit({ navigation }) {
   const [money, setMoney] = useState('');
   const [validMoney, setValidMoney] = useState(false);
 
-  const [accountNumber, setAccountNumber] = useState('');
-  const [validAccountNumber, setValidAccountNumber] = useState(false);
-  const [accountName, setAccountName] = useState('');
-  const [validAccountName, setValidAccountName] = useState(false);
-
-  const [openBank, setOpenBank] = useState(false);
-  const [valueBank, setValueBank] = useState('');
-  const [itemsBank, setItemsBank] = useState([]);
-  const [listBank, setListBank] = useState([]);
   const { user, dispatch } = useContext(AuthContext);
 
-  const checkValid = validMoney;
-
   const handleDeposit = async () => {
-    if (money < 100000) {
-      Alert.alert('Thông báo', 'Số tiền rút tối thiểu là 100,000 đồng');
-      return;
-    } else if (money > 10000000) {
-      Alert.alert('Thông báo', 'Số tiền rút tối đa là 10,000,000 đồng');
-      return;
-    }
-    const bankSelected = listBank.find((item) => item.name_short === valueBank);
-
-    const resBlock = await axiosClient.get('gotruck/authshipper/block/' + user._id);
-    if (resBlock.block) {
-      Alert.alert('Thông báo', 'Tài bạn của bạn đã bị khóa');
-      return;
-    }
-
-    const resOrderCurrent = await axiosClient.get('/gotruck/ordershipper/ordercurrent/' + user._id);
-    const feeOrder = resOrderCurrent.total * (resOrderCurrent.fee / 100) || 0;
-    if (user.balance >= money && user.balance >= feeOrder) {
-      const withdrawTemp = {
-        id_shipper: user._id,
-        money: money,
-        id_bank: bankSelected._id,
-        account_number: accountNumber,
-        account_name: accountName,
-        status: 'Đang xử lý',
-        type: 'Rút tiền',
+    if (+money <= 100000) {
+      Alert.alert('Thông báo', 'Số tiền phải lớn hơn 100,000 vnđ');
+    } else if (+money >= 100000000) {
+      Alert.alert('Thông báo', 'Số tiền phải nhỏ hơn 100,000,000 vnđ');
+    } else {
+      const shipperSend = user;
+      shipperSend.balance = Number(shipperSend.balance) + Number(money);
+      const dataSend = {
+        shipperSend: shipperSend,
+        id_handler: user._id,
       };
-
-      const resWithdraw = await axiosClient.post('gotruck/bank/withdraw', withdrawTemp);
+      await axiosClient.put('gotruck/profileshipper/recharge/' + shipperSend.id_shipper, dataSend);
       const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + user.phone);
       dispatch(LoginSuccess(userLogin));
-      navigation.navigate('WithdrawSuccess');
-    } else {
-      if (user.balance >= feeOrder) {
-        Alert.alert('Thông báo', 'Số dư ví GoTruck của bạn không đủ');
-      } else {
-        Alert.alert('Thông báo', 'Số dư ví GoTruck không đủ để trừ phí đơn hàng hiện tại');
-      }
+      setMoney('');
+      navigation.navigate('DepositSuccess');
     }
   };
-
-  useEffect(() => {
-    const getBanks = async () => {
-      const resBank = await axiosClient.get('gotruck/bank');
-      const listbank = [];
-      resBank.forEach((bank) => {
-        listbank.push({ label: bank.name_full, value: bank.name_short });
-      });
-      setListBank(resBank);
-      setValueBank(listbank[0].value);
-      setItemsBank(listbank);
-    };
-    getBanks();
-  }, []);
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.viewInput}>
         <Text>Nhập số tiền cần nạp</Text>
-        <View style={stylesGlobal.inlineBetween}>
+        <View style={{ display: 'flex', flexDirection: 'row' }}>
           <MyInput
             borderWidth={1}
             width={'94%'}
@@ -100,11 +53,11 @@ export default function Deposit({ navigation }) {
             error={'Số tiền không hợp lệ'}
             valid={setValidMoney}
           />
-          <Text style={{ fontSize: 18, fontWeight: 'bold' }}>VNĐ</Text>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', top: 10 }}>VNĐ</Text>
         </View>
       </View>
       <View style={{ marginTop: 20 }}>
-        {checkValid ? (
+        {validMoney ? (
           <MyButton
             type={'large'}
             btnColor={stylesGlobal.mainGreen}

@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { Ionicons, Feather } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import axiosClient from '../../../../../api/axiosClient';
 import { socketClient } from '../../../../../global/socket';
 import { AuthContext } from '../../../../../context/AuthContext';
@@ -26,6 +26,7 @@ export default function ChatRoom({ route }) {
   const [mess, setMess] = useState();
   const [listMessage, setListMessage] = useState([]);
   const { user } = useContext(AuthContext);
+  const isFocus = useIsFocused();
 
   const handleCallPhone = () => {
     if (item?.id_customer?.phone) {
@@ -44,11 +45,15 @@ export default function ChatRoom({ route }) {
       read: [user._id],
     };
     if (mess.trim()) {
-      await axiosClient.post('gotruck/conversation/message/', {
+      const resMess = await axiosClient.post('gotruck/conversation/message/', {
         ...messageSend,
       });
-      socketClient.emit('send_message', { id_receive: item.id_customer._id });
-      getAllMessage();
+      if (resMess.disable) {
+        Alert.alert('Thông báo', 'Đơn hàng đã giao/đã hủy nên không thể trò chuyện tiếp');
+      } else {
+        socketClient.emit('send_message', { id_receive: item.id_customer._id });
+        getAllMessage();
+      }
     }
     setMess('');
     Keyboard.dismiss();
@@ -107,13 +112,16 @@ export default function ChatRoom({ route }) {
   //------------------------------
   useEffect(() => {
     getAllMessage();
+  }, [isFocus]);
+
+  useEffect(() => {
     socketClient.on('message' + String(user._id), (data) => {
       getAllMessage();
     });
     return () => {
       socketClient.off('message' + String(user._id));
     };
-  }, []);
+  });
 
   return (
     <>

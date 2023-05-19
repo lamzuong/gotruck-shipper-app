@@ -277,7 +277,9 @@ export default function Home({ navigation, route }) {
         setHaveOrder(false);
         onSocketReceiveOrder();
         await AsyncStorage.clear();
+        await axiosClient.put('/gotruck/conversation/disable', { _id: data._id });
       } else {
+        await axiosClient.put('/gotruck/conversation/disable', { _id: data._id });
         setListOrderNotify((prev) => {
           const index = prev.findIndex((e) => e.id_order === data.id_order);
           if (index > -1) {
@@ -297,6 +299,7 @@ export default function Home({ navigation, route }) {
     };
     const resOrderCancel = await axiosClient.put('gotruck/ordershipper/', item);
     if (resOrderCancel.status === 'Đã hủy') {
+      await axiosClient.put('/gotruck/conversation/disable', { _id: item._id });
       if (resOrderCancel.reason_cancel.user_cancel === 'Shipper') {
         socketClient.emit('shipper_cancel', resOrderCancel);
       }
@@ -365,11 +368,24 @@ export default function Home({ navigation, route }) {
   //     await axiosClient.put('gotruck/ordershipper/location', shipperNew);
   //     setLocationShipper(location);
   //     console.log('Đang lấy vị trí hiện tại của tài xế');
+  //     if (orderItem?.status === 'Đang giao') {
+  //       const resOrder = await axiosClient.put('gotruck/ordershipper/locationshipper/', {
+  //         location: location,
+  //         id_order: orderItem._id,
+  //       });
+  //       if (
+  //         resOrder?.shipper_route &&
+  //         orderItem?.shipper_route &&
+  //         resOrder?.shipper_route?.length !== orderItem?.shipper_route?.length
+  //       ) {
+  //         setOrderItem(resOrder);
+  //       }
+  //     }
   //   }, 10000);
   //   return () => {
   //     clearInterval(timeId);
   //   };
-  // }, []);
+  // }, [orderItem]);
 
   useEffect(() => {
     const getOrderCurrent = async () => {
@@ -389,7 +405,6 @@ export default function Home({ navigation, route }) {
           handleDirection(resOrderCurrent.from_address);
         }
         if (resOrderCurrent.status === 'Đang giao') {
-          console.log(1);
           stopZoomRef.current = false;
           setHeightSwip(120);
           setReceived(true);
@@ -601,8 +616,8 @@ export default function Home({ navigation, route }) {
           <TouchableOpacity
             style={[styles.btnPower, { backgroundColor: '#04AF46' }]}
             onPress={async () => {
-              if (user.balance <= -200000) {
-                Alert.alert('Thông báo', 'Vui lòng nạp tiền vào vi GoTruck để tiếp tục giao hàng', [
+              if (user.balance <= 0) {
+                Alert.alert('Thông báo', 'Vui lòng nạp tiền vào ví GoTruck để có thể nhận đơn hàng', [
                   { text: 'OK', onPress: () => {} },
                 ]);
               } else {

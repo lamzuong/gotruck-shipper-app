@@ -91,7 +91,7 @@ export default function Withdraw({ navigation }) {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.viewInput}>
         <Text>Nhập số tiền cần rút</Text>
-        <View style={stylesGlobal.inlineBetween}>
+        <View style={{ display: 'flex', flexDirection: 'row' }}>
           <MyInput
             borderWidth={1}
             width={'94%'}
@@ -100,7 +100,7 @@ export default function Withdraw({ navigation }) {
             error={'Số tiền không hợp lệ'}
             valid={setValidMoney}
           />
-          <Text style={{ fontSize: 18, fontWeight: 'bold' }}>VNĐ</Text>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', top: 10 }}>VNĐ</Text>
         </View>
       </View>
       <View style={styles.viewInput}>

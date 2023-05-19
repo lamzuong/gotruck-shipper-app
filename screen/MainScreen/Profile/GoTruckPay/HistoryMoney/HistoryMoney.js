@@ -28,12 +28,17 @@ export default function HistoryMoney() {
           <View style={{ display: 'flex', flexDirection: 'row' }}>
             <Text>
               {e.type === 'Nạp tiền'
-                ? 'Bạn đã gửi yêu cầu nạp tiền'
+                ? 'Nạp tiền vào ví'
                 : e.type === 'Rút tiền'
                 ? 'Bạn đã gửi yêu cầu rút tiền'
                 : 'Phí đơn hàng ' + e.id_order}
             </Text>
-            <Text style={{ marginLeft: 10, color: stylesGlobal.mainGreen }}>
+            <Text
+              style={{
+                marginLeft: 10,
+                color: e.status === 'Đã xử lý' ? stylesGlobal.mainGreen : 'orange',
+              }}
+            >
               {e.type !== 'Order' && e.status}
             </Text>
           </View>

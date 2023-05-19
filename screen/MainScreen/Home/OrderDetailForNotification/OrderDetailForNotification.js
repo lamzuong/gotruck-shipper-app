@@ -38,7 +38,7 @@ export default function OrderDetailForNotification() {
       Alert.alert('Thông báo', 'Tài bạn của bạn đã bị khóa');
       return;
     }
-    if (user.balance - item.total * (item.fee / 100) < -200000) {
+    if (user.balance - item.total * (item.fee / 100) < 0) {
       Alert.alert('Thông báo', 'Số dư ví GoTruck không đủ, vui lòng nạp thêm tiền để nhận đơn');
     } else {
       navigation.navigate('Home', { checkHaveOrder: true, itemOrder: item });
@@ -78,11 +78,11 @@ export default function OrderDetailForNotification() {
           </View> */}
         </View>
         <Text style={styles.content}>
-          {item.from_address.name +
+          {item?.from_address?.name +
             '\n' +
-            item.from_address.address +
+            item?.from_address?.address +
             '\n' +
-            item.from_address.phone}
+            item?.from_address?.phone}
         </Text>
         <View style={[stylesGlobal.inlineBetween, { marginTop: 5 }]}>
           <View style={styles.inline}>
@@ -128,10 +128,10 @@ export default function OrderDetailForNotification() {
             <Text style={styles.labelFooter}>Khoảng cách</Text>
             <Text style={styles.content}>{item.distance} km</Text>
           </View>
-          <View style={styles.inline}>
+          {/* <View style={styles.inline}>
             <Text style={styles.labelFooter}>Thời gian dự kiến</Text>
             <Text style={styles.content}>{item.expectedTime} phút</Text>
-          </View>
+          </View> */}
           <View style={styles.inline}>
             <Text style={styles.labelFooter}>Chi phí vận chuyển</Text>
             <Text style={{ fontWeight: 'bold', fontSize: 20 }}>

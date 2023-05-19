@@ -81,11 +81,11 @@ export default function NewOrderDetail({ setShowModal, item, show, received, loc
           </View>
         </View>
         <Text style={styles.content}>
-          {item.from_address.name +
+          {item?.from_address?.name +
             '\n' +
-            item.from_address.address +
+            item?.from_address?.address +
             '\n' +
-            item.from_address.phone}
+            item?.from_address?.phone}
         </Text>
         <View style={[stylesGlobal.inlineBetween, { marginTop: 5 }]}>
           <View style={styles.inline}>
@@ -126,10 +126,10 @@ export default function NewOrderDetail({ setShowModal, item, show, received, loc
             <Text style={styles.labelFooter}>Khoảng cách</Text>
             <Text style={styles.content}>{item.distance} km</Text>
           </View>
-          <View style={styles.inline}>
+          {/* <View style={styles.inline}>
             <Text style={styles.labelFooter}>Thời gian dự kiến</Text>
             <Text style={styles.content}>{item.expectedTime} phút</Text>
-          </View>
+          </View> */}
           <View style={styles.inline}>
             <Text style={styles.labelFooter}>Chi phí vận chuyển</Text>
             <Text style={{ fontWeight: 'bold', fontSize: 20 }}>

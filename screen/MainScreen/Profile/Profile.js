@@ -5,9 +5,10 @@ import { View, Text, Image, TouchableOpacity, FlatList, Alert } from 'react-nati
 import React, { useContext } from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AuthContext } from '../../../context/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Profile({ navigation }) {
-  const {user} = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const confirmRequest = (screen) => {
     Alert.alert('Xác nhận', 'Bạn có muốn đăng xuất khỏi ứng dụng ?', [
       {
@@ -15,7 +16,13 @@ export default function Profile({ navigation }) {
         onPress: () => null,
         style: 'cancel',
       },
-      { text: 'OK', onPress: () => navigation.navigate(screen) },
+      {
+        text: 'OK',
+        onPress: async () => {
+          await AsyncStorage.removeItem('phone');
+          navigation.navigate(screen);
+        },
+      },
     ]);
   };
   return (

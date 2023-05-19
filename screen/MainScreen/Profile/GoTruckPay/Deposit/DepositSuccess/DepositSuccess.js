@@ -15,7 +15,7 @@ export default function DepositSuccess({ navigation }) {
         />
         <View style={styles.viewFinish}>
           <Text style={styles.viewFinish.title}>
-            Yêu cầu rút tiền thành công !!{'\t\t'}
+            Bạn đã nạp tiền thành công !!{'\t\t'}
             <MaterialCommunityIcons name="truck-fast" size={25} color="white" />
           </Text>
           <Image
