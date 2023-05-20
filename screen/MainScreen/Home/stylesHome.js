@@ -69,6 +69,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     width: widthScreen * 0.7,
+    display: 'none',
   },
   input: {
     flexDirection: 'row',

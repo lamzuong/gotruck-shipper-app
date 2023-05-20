@@ -80,10 +80,7 @@ export default function ShippedGoods({ navigation }) {
     dispatch(LoginSuccess(userLogin));
     const sendNotify = {
       title: 'Thông báo đơn hàng ' + item.id_order,
-      content:
-        'Tài xế ' +
-        item.shipper.id_shipper.name +
-        ' đã vận chuyển hàng đến nơi giao hàng thành công',
+      content: 'Tài xế ' + userLogin.name + ' đã vận chuyển hàng đến nơi giao hàng thành công',
       image: listURLImage,
       type_notify: 'Order',
       type_send: 'Specific',

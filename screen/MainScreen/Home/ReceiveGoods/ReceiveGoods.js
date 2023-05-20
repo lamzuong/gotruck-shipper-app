@@ -5,7 +5,7 @@ import ButtonAdd from '../../../../components/ButtonAdd/ButtonAdd';
 import MyButton from '../../../../components/MyButton/MyButton';
 
 import { View, Text, Image, ScrollView, Alert, Linking, TouchableOpacity } from 'react-native';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import firebase from 'firebase/compat';
 import uuid from 'react-native-uuid';
@@ -13,12 +13,13 @@ import { useRoute } from '@react-navigation/native';
 import { socketClient } from '../../../../global/socket';
 import axiosClient from '../../../../api/axiosClient';
 import AnimatedLoader from 'react-native-animated-loader';
+import { AuthContext } from '../../../../context/AuthContext';
 
 export default function ReceiveGoods({ navigation }) {
   const [listImages, setListImages] = useState([]);
   const [listImageSends, setListImageSend] = useState([]);
   const [checkUpload, setCheckUpload] = useState(false);
-
+  const { user } = useContext(AuthContext);
   const route = useRoute();
   const { item } = route.params;
 
@@ -87,10 +88,7 @@ export default function ReceiveGoods({ navigation }) {
     socketClient.emit('shipper_shipping', resOrder);
     const sendNotify = {
       title: 'Thông báo đơn hàng ' + item.id_order,
-      content:
-        'Tài xế ' +
-        item.shipper.id_shipper.name +
-        ' đã nhận hàng và đang vận chuyển hàng đến nơi giao hàng',
+      content: 'Tài xế ' + user.name + ' đã nhận hàng và đang vận chuyển hàng đến nơi giao hàng',
       image: listURLImage,
       type_notify: 'Order',
       type_send: 'Specific',

@@ -294,7 +294,7 @@ export default function Home({ navigation, route }) {
       if (resOrderCancel.reason_cancel.user_cancel === 'Shipper') {
         const sendNotify = {
           title: 'Thông báo đơn hàng ' + item.id_order,
-          content: 'Tài xế ' + item.shipper.id_shipper.name + ' đã hủy đơn hàng vì ' + reason,
+          content: 'Tài xế ' + user.name + ' đã hủy đơn hàng vì ' + reason,
           type_notify: 'Order',
           type_send: 'Specific',
           id_receiver: item.id_customer?._id || item.id_customer,
@@ -498,14 +498,15 @@ export default function Home({ navigation, route }) {
                 <CollapseHeader>
                   <View style={styles.header}>
                     <Text style={styles.txtHeader}>Đang hoạt động</Text>
-                    {expand ? (
+                    {/* {expand ? (
                       <Entypo name="chevron-up" size={24} color="black" />
                     ) : (
                       <Entypo name="chevron-down" size={24} color="black" />
-                    )}
+                    )} */}
                   </View>
                 </CollapseHeader>
                 <CollapseBody>
+                  {/* body đang display none */}
                   <View style={styles.body}>
                     <Text>Địa điểm đến mong muốn</Text>
                     {checkTimeUsed() && (
