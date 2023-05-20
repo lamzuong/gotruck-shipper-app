@@ -60,6 +60,7 @@ export default function Login({ navigation }) {
           return;
         }
         const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + phoneLocal);
+
         const orderList = await axiosClient.get('gotruck/ordershipper/shipper/' + userLogin._id);
         const currentLocation = await getLocationCurrentOfUser();
         if (currentLocation) {
@@ -77,56 +78,60 @@ export default function Login({ navigation }) {
   const sendVerification = async () => {
     const phone = formatPhone();
     // Login fast
-    // const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + phone);
-    // if (!userLogin.phone) {
-    //   customAlert('Thông báo', 'Số điện thoại này chưa được đăng kí!', null);
-    //   return;
-    // }
-    // const orderList = await axiosClient.get('gotruck/ordershipper/shipper/' + userLogin._id);
-    // const currentLocation = await getLocationCurrentOfUser();
-    // if (currentLocation) {
-    //   await AsyncStorage.setItem('phone', phone);
-    //   await AsyncStorage.setItem('dateLogin', new Date().toString());
-    //   dispatch(LoginSuccess(userLogin));
-    //   dispatch(SetLocation(currentLocation));
-    //   dispatch(SetListOrder(orderList));
-    //   toMainScreen();
-    // }
+    const userLogin = await axiosClient.get('/gotruck/authshipper/user/' + phone);
+    if (!userLogin.phone && userLogin.infoAllTruck) {
+      customAlert('Thông báo', 'Số điện thoại này chưa được đăng kí!', null);
+      return;
+    }
+    const truckDefault = userLogin.infoAllTruck.find((tr) => tr.default === true);
+    if (!truckDefault) {
+      return;
+    }
+    const orderList = await axiosClient.get('gotruck/ordershipper/shipper/' + userLogin._id);
+    const currentLocation = await getLocationCurrentOfUser();
+    if (currentLocation) {
+      await AsyncStorage.setItem('phone', phone);
+      await AsyncStorage.setItem('dateLogin', new Date().toString());
+      dispatch(LoginSuccess(userLogin));
+      dispatch(SetLocation(currentLocation));
+      dispatch(SetListOrder(orderList));
+      toMainScreen();
+    }
     // kết thúc
 
-    try {
-      const res = await axiosClient.get('/gotruck/authshipper/user/' + phone);
-      if (!res.phone) {
-        customAlert('Thông báo', 'Số điện thoại này chưa được đăng kí!', null);
-      } else {
-        if (res.status === 'Đã duyệt') {
-          const phoneProvider = new firebase.auth.PhoneAuthProvider();
-          phoneProvider
-            .verifyPhoneNumber('+84' + phone, recaptchaVerifier.current)
-            .then((result) => {
-              setVerificationId(result);
-              nextScreen();
-            })
-            .catch((error) => {
-              console.log(error?.code);
-              if (error?.code === 'auth/too-many-requests') {
-                Alert.alert(
-                  'Thông báo',
-                  'Bạn đã yêu cầu gửi mã OTP quá nhiều lần\nVui lòng thử lại sau',
-                );
-              }
-            });
-        } else {
-          customAlert(
-            'Thông báo',
-            'Tài khoản đang trong quá trình xác thực.\nVui lòng thử lại sau!',
-            null,
-          );
-        }
-      }
-    } catch (error2) {
-      customAlert('Thông báo', 'Lỗi không xác định', null);
-    }
+    // try {
+    //   const res = await axiosClient.get('/gotruck/authshipper/user/' + phone);
+    //   if (!res.phone) {
+    //     customAlert('Thông báo', 'Số điện thoại này chưa được đăng kí!', null);
+    //   } else {
+    //     if (res.status === 'Đã duyệt') {
+    //       const phoneProvider = new firebase.auth.PhoneAuthProvider();
+    //       phoneProvider
+    //         .verifyPhoneNumber('+84' + phone, recaptchaVerifier.current)
+    //         .then((result) => {
+    //           setVerificationId(result);
+    //           nextScreen();
+    //         })
+    //         .catch((error) => {
+    //           console.log(error?.code);
+    //           if (error?.code === 'auth/too-many-requests') {
+    //             Alert.alert(
+    //               'Thông báo',
+    //               'Bạn đã yêu cầu gửi mã OTP quá nhiều lần\nVui lòng thử lại sau',
+    //             );
+    //           }
+    //         });
+    //     } else {
+    //       customAlert(
+    //         'Thông báo',
+    //         'Tài khoản đang trong quá trình xác thực.\nVui lòng thử lại sau!',
+    //         null,
+    //       );
+    //     }
+    //   }
+    // } catch (error2) {
+    //   customAlert('Thông báo', 'Lỗi không xác định', null);
+    // }
   };
 
   const checkOTP = () => {
@@ -141,6 +146,10 @@ export default function Login({ navigation }) {
           if (userLogin.notFound) {
             Alert.alert('Thông báo', 'Lỗi không xác định vui lòng đăng nhập lại sau');
           } else {
+            const truckDefault = userLogin.infoAllTruck.find((tr) => tr.default === true);
+            if (!truckDefault) {
+              return;
+            }
             const orderList = await axiosClient.get(
               'gotruck/ordershipper/shipper/' + userLogin._id,
             );

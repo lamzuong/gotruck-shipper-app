@@ -348,7 +348,14 @@ export default function Home({ navigation, route }) {
       const orderCurrentStr = await AsyncStorage.getItem('orderCurrent');
       const orderCurrent = JSON.parse(orderCurrentStr || '{}');
       if (haveOrder && orderCurrent) {
-        const resultRoute = await getRouteTwoLocation(locationShipper, orderCurrent.to_address);
+        const resultRoute = await getRouteTwoLocation(
+          locationShipper,
+          orderItem.status === 'Đã nhận'
+            ? orderCurrent.from_address
+            : orderItem.status === 'Đang giao'
+            ? orderCurrent.to_address
+            : orderCurrent.from_address,
+        );
         let routePolyTemp = [];
         if (resultRoute) {
           const listPoly = getPoLylineFromEncode(resultRoute?.result.routes[0].overviewPolyline);
@@ -361,32 +368,32 @@ export default function Home({ navigation, route }) {
     }).call(this);
   }, [locationShipper]);
 
-  // useEffect(() => {
-  //   const timeId = setInterval(async () => {
-  //     const location = await getLocationCurrentOfUser();
-  //     const shipperNew = user;
-  //     shipperNew.current_address = location;
-  //     await axiosClient.put('gotruck/ordershipper/location', shipperNew);
-  //     setLocationShipper(location);
-  //     console.log('Đang lấy vị trí hiện tại của tài xế');
-  //     if (orderItem?.status === 'Đang giao') {
-  //       const resOrder = await axiosClient.put('gotruck/ordershipper/locationshipper/', {
-  //         location: location,
-  //         id_order: orderItem._id,
-  //       });
-  //       if (
-  //         resOrder?.shipper_route &&
-  //         orderItem?.shipper_route &&
-  //         resOrder?.shipper_route?.length !== orderItem?.shipper_route?.length
-  //       ) {
-  //         setOrderItem(resOrder);
-  //       }
-  //     }
-  //   }, 10000);
-  //   return () => {
-  //     clearInterval(timeId);
-  //   };
-  // }, [orderItem]);
+  useEffect(() => {
+    const timeId = setInterval(async () => {
+      const location = await getLocationCurrentOfUser();
+      const shipperNew = user;
+      shipperNew.current_address = location;
+      await axiosClient.put('gotruck/ordershipper/location', shipperNew);
+      setLocationShipper(location);
+      console.log('Đang lấy vị trí hiện tại của tài xế');
+      if (orderItem?.status === 'Đang giao') {
+        const resOrder = await axiosClient.put('gotruck/ordershipper/locationshipper/', {
+          location: location,
+          id_order: orderItem._id,
+        });
+        if (
+          resOrder?.shipper_route &&
+          orderItem?.shipper_route &&
+          resOrder?.shipper_route?.length !== orderItem?.shipper_route?.length
+        ) {
+          setOrderItem(resOrder);
+        }
+      }
+    }, 10000);
+    return () => {
+      clearInterval(timeId);
+    };
+  }, [orderItem]);
 
   useEffect(() => {
     const getOrderCurrent = async () => {
