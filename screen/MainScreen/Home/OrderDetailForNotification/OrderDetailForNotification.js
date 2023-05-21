@@ -144,7 +144,7 @@ export default function OrderDetailForNotification() {
         <View style={stylesGlobal.inlineBetween}>
           <MyButton
             type={'medium'}
-            text="Hủy chuyến"
+            text="Không nhận"
             btnColor={'red'}
             txtColor="white"
             action={async () => {
@@ -153,7 +153,7 @@ export default function OrderDetailForNotification() {
                 Alert.alert('Thông báo', 'Tài bạn của bạn đã bị khóa');
                 return;
               }
-              Alert.alert('Xác nhận', 'Bạn chắc chắn muốn hủy đơn?', [
+              Alert.alert('Xác nhận', 'Bạn chắc chắn không nhận đơn này?', [
                 {
                   text: 'Hủy',
                   onPress: () => null,
