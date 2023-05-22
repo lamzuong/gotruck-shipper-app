@@ -107,7 +107,6 @@ export default function Home({ navigation, route }) {
       const resultRoute = await getRouteTwoLocation(locationShipper, data.from_address);
       const distanceTwoLocation = resultRoute?.result?.routes[0]?.distance?.value || -1;
       const distanceReceiveOrder = await axiosClient.get('gotruck/ordershipper/distancereceive');
-
       if (
         distanceTwoLocation >= 0 &&
         // distanceTwoLocation <= 500000000
@@ -121,7 +120,12 @@ export default function Home({ navigation, route }) {
           }
         }
         setListOrderNotify((prev) => {
-          return [...prev, data];
+          const temp = prev.find((item) => item._id === data._id);
+          if (typeof temp === 'undefined') {
+            return [data, ...prev];
+          } else {
+            return [...prev];
+          }
         });
       } else if (distanceTwoLocation < 0) {
         console.log('Không có đường đi');
