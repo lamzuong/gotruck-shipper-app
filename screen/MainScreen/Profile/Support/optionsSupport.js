@@ -1,11 +1,11 @@
 import { Entypo, FontAwesome } from '@expo/vector-icons';
 
 const options = [
-  {
-    title: 'Hướng dẫn nạp tiền vào ví GoTruck',
-    navigateTo: 'PayIntro',
-    icon: <FontAwesome name="dollar" size={24} color="black" />,
-  },
+  // {
+  //   title: 'Hướng dẫn nạp tiền vào ví GoTruck',
+  //   navigateTo: 'PayIntro',
+  //   icon: <FontAwesome name="dollar" size={24} color="black" />,
+  // },
   {
     title: 'Điều khoản & chính sách',
     navigateTo: 'Help',

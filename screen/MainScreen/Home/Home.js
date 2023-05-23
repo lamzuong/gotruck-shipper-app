@@ -200,6 +200,17 @@ export default function Home({ navigation, route }) {
             handleDirection(res.from_address);
             await AsyncStorage.setItem('orderCurrent', JSON.stringify(res));
             socketClient.emit('shipper_receive', res);
+
+            const sendNotify = {
+              title: 'Thông báo đơn hàng ' + updateNewOrder.id_order,
+              content:
+                'Tài xế ' + user.name + ' đã nhận đơn và đang đến nơi lấy hàng',
+              type_notify: 'Order',
+              type_send: 'Specific',
+              id_receiver: updateNewOrder.id_customer?._id || updateNewOrder.id_customer,
+              userModel: 'Customer',
+            };
+            await axiosClient.post('gotruck/notify/shipper', sendNotify);
           } else if (res.status == 'Đã hủy' && res.reason_cancel.user_cancel === 'AutoDelete') {
             Alert.alert('Thông báo', 'Đơn hàng đã quá hạn');
           } else if (res.status == 'Đã hủy' && res.reason_cancel.user_cancel === 'Customer') {
