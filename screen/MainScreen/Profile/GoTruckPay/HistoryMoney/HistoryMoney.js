@@ -31,7 +31,7 @@ export default function HistoryMoney() {
                 ? 'Nạp tiền vào ví'
                 : e.type === 'Rút tiền'
                 ? 'Bạn đã gửi yêu cầu rút tiền'
-                : 'Phí đơn hàng ' + e.id_order}
+                : 'Phí giao dịch đơn hàng ' + e.id_order}
             </Text>
             <Text
               style={{

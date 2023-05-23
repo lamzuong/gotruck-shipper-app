@@ -68,7 +68,7 @@ export default function Withdraw({ navigation }) {
       if (user.balance >= feeOrder) {
         Alert.alert('Thông báo', 'Số dư ví GoTruck của bạn không đủ');
       } else {
-        Alert.alert('Thông báo', 'Số dư ví GoTruck không đủ để trừ phí đơn hàng hiện tại');
+        Alert.alert('Thông báo', 'Số dư ví GoTruck không đủ để trừ phí giao dịch đơn hàng hiện tại');
       }
     }
   };
