@@ -16,6 +16,7 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import axiosClient from '../../../../../api/axiosClient';
 import { AuthContext } from '../../../../../context/AuthContext';
 import { LoginSuccess } from '../../../../../context/AuthAction';
+import * as FileSystem from 'expo-file-system';
 
 export default function FormVehicle() {
   const [openTruck, setOpenTruck] = useState(false);
@@ -110,6 +111,26 @@ export default function FormVehicle() {
   };
 
   const handleSendRequest = async () => {
+    let imageSize = 0;
+    for (let i = 0; i < listImageSends.length; i++) {
+      const fileInfo = await FileSystem.getInfoAsync(listImageSends[i].uri);
+      imageSize += fileInfo.size;
+    }
+    if (imageSize > 10000000) {
+      Alert.alert('Thông báo', 'Kích thước hình ảnh xe quá lớn');
+      return;
+    }
+
+    let imageSizeVehicleRegistration = 0;
+    for (let i = 0; i < listImageSendsVehicleRegistration.length; i++) {
+      const fileInfo = await FileSystem.getInfoAsync(listImageSendsVehicleRegistration[i].uri);
+      imageSizeVehicleRegistration += fileInfo.size;
+    }
+    if (imageSizeVehicleRegistration > 10000000) {
+      Alert.alert('Thông báo', 'Kích thước hình ảnh bằng lái và cmnd/cccd quá lớn');
+      return;
+    }
+
     setCheckUpload(true);
     let listURLImage = await uploadImage(listImageSends);
     let listURLImageVehicleRegistration = await uploadImage(listImageSendsVehicleRegistration);

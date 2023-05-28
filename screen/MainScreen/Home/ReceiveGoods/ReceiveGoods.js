@@ -14,6 +14,7 @@ import { socketClient } from '../../../../global/socket';
 import axiosClient from '../../../../api/axiosClient';
 import AnimatedLoader from 'react-native-animated-loader';
 import { AuthContext } from '../../../../context/AuthContext';
+import * as FileSystem from 'expo-file-system';
 
 export default function ReceiveGoods({ navigation }) {
   const [listImages, setListImages] = useState([]);
@@ -46,6 +47,16 @@ export default function ReceiveGoods({ navigation }) {
   };
 
   const handleConfirm = async () => {
+    let imageSize = 0;
+    for (let i = 0; i < listImageSends.length; i++) {
+      const fileInfo = await FileSystem.getInfoAsync(listImageSends[i].uri);
+      imageSize += fileInfo.size;
+    }
+    if (imageSize > 10000000) {
+      Alert.alert('Thông báo', 'Kích thước ảnh quá lớn');
+      return;
+    }
+
     const resTemp = await axiosClient.get('gotruck/order/order/' + item._id);
     if (!resTemp.isNotFound && resTemp.status === 'Đã hủy') {
       Alert.alert('Thông báo', 'Đơn hàng đã bị hủy');
